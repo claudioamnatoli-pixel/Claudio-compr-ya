@@ -1,9 +1,11 @@
 // Esquema de datos de Compr-Ya.
 //
 // Convención importante: TODO valor monetario se guarda como entero en la
-// unidad mínima de la moneda (centavos). Así se evitan los errores de redondeo
-// de los números decimales. Para mostrarlo en pantalla se usa
-// `formatearDinero()` de `src/lib/formato.ts`.
+// unidad mínima de la moneda, para evitar los errores de redondeo de los
+// números decimales. Con la moneda por defecto (guaraní paraguayo, que no tiene
+// centavos) el factor es 1: ₲ 250.000 se guarda como 250000. Con una moneda con
+// centavos el factor es 100. Ver `FACTOR_MONEDA` en `src/lib/config.ts`; para
+// mostrarlo en pantalla se usa `formatearDinero()` de `src/lib/formato.ts`.
 //
 // SQLite no soporta enums, por lo que los campos de tipo "estado" son String.
 // Los valores válidos y sus etiquetas viven en `src/lib/dominio.ts`, que es la
@@ -26,7 +28,7 @@ model Equipo {
   id          String   @id @default(cuid())
   nombre      String   @unique
   descripcion String?
-  /// Meta de ventas mensual del equipo, en centavos.
+  /// Meta de ventas mensual del equipo, en la unidad mínima de la moneda.
   metaMensual Int      @default(0)
   activo      Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -38,24 +40,31 @@ model Equipo {
 }
 
 model Empleado {
-  id           String    @id @default(cuid())
-  nombre       String
-  email        String    @unique
-  telefono     String
+  id                  String    @id @default(cuid())
+  nombre              String
+  email               String    @unique
+  telefono            String
   /// Ver ROLES en src/lib/dominio.ts (ADMIN, LIDER, VENDEDOR, REPARTIDOR, ALMACEN).
-  rol          String
-  activo       Boolean   @default(true)
-  fechaIngreso DateTime  @default(now())
-  fechaBaja    DateTime?
-  /// Sueldo base mensual, en centavos.
-  salarioBase  Int       @default(0)
+  rol                 String
+  activo              Boolean   @default(true)
+  fechaIngreso        DateTime  @default(now())
+  fechaBaja           DateTime?
+  /// Sueldo base mensual, en la unidad mínima de la moneda.
+  salarioBase         Int       @default(0)
   /// Fracción de comisión sobre la venta. 0.08 = 8 %.
-  tasaComision Float     @default(0)
-  /// Meta de ventas mensual individual, en centavos.
-  metaMensual  Int       @default(0)
-  notas        String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  tasaComision        Float     @default(0)
+  /// Meta de ventas mensual individual, en la unidad mínima de la moneda.
+  metaMensual         Int       @default(0)
+  notas               String?
+  /// Hash de la contraseña (scrypt). Nulo mientras no se le dé acceso al
+  /// sistema: alguien puede estar en la nómina sin poder entrar todavía.
+  passwordHash        String?
+  /// Obliga a cambiar la contraseña en el próximo inicio de sesión. Se activa
+  /// cuando administración la asigna o la restablece.
+  debeCambiarPassword Boolean   @default(false)
+  ultimoAccesoAt      DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   equipoId       String?
   equipo         Equipo? @relation("MiembroDeEquipo", fields: [equipoId], references: [id], onDelete: SetNull)
@@ -69,6 +78,7 @@ model Empleado {
   movimientos MovimientoInventario[]
   asistencias Asistencia[]
   comisiones  Comision[]
+  sesiones    Sesion[]
 
   @@index([rol])
   @@index([equipoId])
@@ -92,12 +102,12 @@ model Asistencia {
 
 model Comision {
   id         String    @id @default(cuid())
-  /// Monto sobre el que se calculó la comisión (subtotal del pedido), en centavos.
+  /// Monto sobre el que se calculó la comisión (subtotal del pedido), en la unidad mínima de la moneda.
   base       Int
   /// Fracción aplicada en el momento del cálculo. Se congela para que un cambio
   /// posterior en la tasa del vendedor no altere comisiones ya generadas.
   porcentaje Float
-  /// Resultado en centavos.
+  /// Resultado en la unidad mínima de la moneda.
   monto      Int
   /// Ver ESTADOS_COMISION: PENDIENTE, APROBADA, PAGADA, CANCELADA.
   estado     String    @default("PENDIENTE")
@@ -126,9 +136,9 @@ model Producto {
   nombre      String
   descripcion String?
   categoria   String
-  /// Costo de adquisición, en centavos.
+  /// Costo de adquisición, en la unidad mínima de la moneda.
   costo       Int
-  /// Precio de venta al público, en centavos.
+  /// Precio de venta al público, en la unidad mínima de la moneda.
   precio      Int
   stock       Int      @default(0)
   /// Umbral a partir del cual el producto se marca como stock bajo.
@@ -178,7 +188,7 @@ model Campana {
   tipo        String
   urlVideo    String?
   hashtags    String?
-  /// Inversión publicitaria, en centavos.
+  /// Inversión publicitaria, en la unidad mínima de la moneda.
   presupuesto Int       @default(0)
   fechaInicio DateTime  @default(now())
   fechaFin    DateTime?
@@ -262,7 +272,7 @@ model Zona {
   id             String  @id @default(cuid())
   nombre         String  @unique
   ciudad         String
-  /// Tarifa de envío que se cobra al cliente, en centavos.
+  /// Tarifa de envío que se cobra al cliente, en la unidad mínima de la moneda.
   costoEnvio     Int
   /// Tiempo de entrega prometido, en horas.
   horasEstimadas Int     @default(48)
@@ -288,7 +298,7 @@ model Pedido {
   /// Ver METODOS_PAGO: CONTRA_ENTREGA, TRANSFERENCIA, TARJETA.
   metodoPago String @default("CONTRA_ENTREGA")
 
-  /// Todos en centavos.
+  /// Todos en la unidad mínima de la moneda.
   subtotal   Int @default(0)
   costoEnvio Int @default(0)
   descuento  Int @default(0)
@@ -318,10 +328,10 @@ model Pedido {
 model ItemPedido {
   id             String @id @default(cuid())
   cantidad       Int
-  /// Precio congelado en el momento de la venta, en centavos. No se lee del
+  /// Precio congelado en el momento de la venta, en la unidad mínima de la moneda. No se lee del
   /// producto para que un cambio de precio no altere pedidos históricos.
   precioUnitario Int
-  /// cantidad * precioUnitario, en centavos.
+  /// cantidad * precioUnitario, en la unidad mínima de la moneda.
   subtotal       Int
 
   pedidoId String
@@ -343,9 +353,9 @@ model Envio {
   fechaEntrega    DateTime?
   /// Número de intentos de entrega realizados.
   intentos        Int       @default(0)
-  /// Lo que costó realmente la entrega (gasolina, mensajería), en centavos.
+  /// Lo que costó realmente la entrega (gasolina, mensajería), en la unidad mínima de la moneda.
   costoReal       Int?
-  /// Efectivo cobrado al cliente en entregas contra entrega, en centavos.
+  /// Efectivo cobrado al cliente en entregas contra entrega, en la unidad mínima de la moneda.
   montoCobrado    Int?
   observaciones   String?
   createdAt       DateTime  @default(now())
@@ -362,4 +372,25 @@ model Envio {
 
   @@index([estado])
   @@index([repartidorId])
+}
+
+// ---------------------------------------------------------------------------
+// Acceso al sistema
+// ---------------------------------------------------------------------------
+
+model Sesion {
+  id        String   @id @default(cuid())
+  /// Hash del token que viaja en la cookie. Se guarda el hash y no el token en
+  /// claro para que quien lea la base no pueda suplantar a nadie.
+  tokenHash String   @unique
+  createdAt DateTime @default(now())
+  expiraAt  DateTime
+  /// Datos del navegador, para que una persona pueda reconocer sus sesiones.
+  agente    String?
+
+  empleadoId String
+  empleado   Empleado @relation(fields: [empleadoId], references: [id], onDelete: Cascade)
+
+  @@index([empleadoId])
+  @@index([expiraAt])
 }

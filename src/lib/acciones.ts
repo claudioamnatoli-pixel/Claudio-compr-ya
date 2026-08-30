@@ -1,4 +1,5 @@
 import { ZodError, z, type ZodTypeAny } from 'zod';
+import { FACTOR_MONEDA } from './config';
 
 /**
  * Resultado uniforme de un Server Action. Los formularios lo leen con
@@ -49,14 +50,18 @@ export const textoOpcional = () =>
       return limpio ? limpio : null;
     });
 
-/** Lee un importe escrito en unidades ("599.90") y lo guarda en centavos. */
-export const dineroEnCentavos = (mensaje = 'Escribe un importe válido') =>
+/**
+ * Lee un importe tal como lo escribe una persona y lo guarda en la unidad
+ * mínima de la moneda: "250000" → 250000 en guaraníes, "599.90" → 59990 donde
+ * hay centavos.
+ */
+export const dineroEnUnidadMinima = (mensaje = 'Escribe un importe válido') =>
   z
     .string()
     .optional()
     .transform((valor) => Number(String(valor ?? '').replace(/[^0-9.-]/g, '')))
     .refine((numero) => Number.isFinite(numero) && numero >= 0, { message: mensaje })
-    .transform((numero) => Math.round(numero * 100));
+    .transform((numero) => Math.round(numero * FACTOR_MONEDA));
 
 export const enteroNoNegativo = (mensaje = 'Escribe un número válido') =>
   z

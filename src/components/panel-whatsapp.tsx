@@ -1,7 +1,7 @@
 'use client';
 
 import { useActionState, useMemo, useState } from 'react';
-import { registrarMensaje } from '@/app/leads/acciones';
+import { registrarMensaje } from '@/app/(panel)/leads/acciones';
 import type { ResultadoAccion } from '@/lib/acciones';
 import { enlaceWhatsApp, renderizarPlantilla } from '@/lib/whatsapp';
 
@@ -20,14 +20,12 @@ export function PanelWhatsApp({
   telefono,
   plantillas,
   variables,
-  vendedorId,
   etapaActual,
 }: {
   leadId: string;
   telefono: string;
   plantillas: Plantilla[];
   variables: Record<string, string | null | undefined>;
-  vendedorId: string | null;
   etapaActual: string;
 }) {
   const [texto, setTexto] = useState('');
@@ -91,7 +89,6 @@ export function PanelWhatsApp({
         <input type="hidden" name="leadId" value={leadId} />
         <input type="hidden" name="direccion" value="SALIENTE" />
         {plantillaId ? <input type="hidden" name="plantillaId" value={plantillaId} /> : null}
-        {vendedorId ? <input type="hidden" name="empleadoId" value={vendedorId} /> : null}
 
         <label className="block">
           <span className="etiqueta-campo">Mensaje</span>

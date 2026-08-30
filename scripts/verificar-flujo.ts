@@ -1,10 +1,17 @@
 /**
- * Prueba del flujo completo de un pedido contra la base real: inventario,
- * comisión y envío. Deja la base como la encontró.
+ * Verificación del comportamiento que no se puede comprobar a ojo: el ciclo de
+ * vida de un pedido contra la base real, el manejo del dinero, los permisos por
+ * rol y las contraseñas. Deja la base como la encontró.
  */
 import { PrismaClient } from '@prisma/client';
 import { detallePedido, transicionarPedido, TransicionInvalida } from '../src/lib/pedidos';
 import { aplicarMovimiento, StockInsuficiente } from '../src/lib/inventario';
+import { hashearPassword, revisarPassword, verificarPassword } from '../src/lib/password';
+import { inicioDe, puede } from '../src/lib/permisos';
+import { aUnidadMinima, formatearDinero } from '../src/lib/formato';
+import { CONFIG, FACTOR_MONEDA } from '../src/lib/config';
+import { readFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
 
 const prisma = new PrismaClient();
 let fallos = 0;
@@ -111,6 +118,91 @@ async function main() {
     10, // el producto se creó con stock 10 sin movimiento asociado
   );
   comprobar('movimientos y stock coinciden', calculado === (await stockDe(producto.id)), `calculado=${calculado}`);
+
+  console.log('\nDinero');
+  comprobar(
+    'el guaraní se detecta como moneda sin decimales',
+    CONFIG.moneda !== 'PYG' || CONFIG.decimales === 0,
+    `${CONFIG.moneda} → ${CONFIG.decimales} decimales`,
+  );
+  comprobar(
+    'el factor de la moneda concuerda con sus decimales',
+    FACTOR_MONEDA === 10 ** CONFIG.decimales,
+    `factor=${FACTOR_MONEDA}`,
+  );
+  comprobar(
+    'lo que se escribe en el formulario se guarda sin perder valor',
+    aUnidadMinima('250000') === 250_000 * FACTOR_MONEDA,
+    `aUnidadMinima("250000")=${aUnidadMinima('250000')}`,
+  );
+  comprobar(
+    'guardar y formatear conserva la cifra',
+    formatearDinero(aUnidadMinima('250000')).includes('250'),
+    formatearDinero(aUnidadMinima('250000')),
+  );
+  comprobar(
+    'los importes se guardan como enteros',
+    Number.isInteger(aUnidadMinima('1234.56')),
+    `${aUnidadMinima('1234.56')}`,
+  );
+
+  console.log('\nPermisos por rol');
+  comprobar('administración puede gestionar personal', puede('ADMIN', 'equipo.gestionar'));
+  comprobar('un vendedor NO puede gestionar personal', !puede('VENDEDOR', 'equipo.gestionar'));
+  comprobar('un vendedor NO ve sueldos ajenos', !puede('VENDEDOR', 'equipo.verRemuneracion'));
+  comprobar('un vendedor NO ve prospectos ajenos', !puede('VENDEDOR', 'leads.verTodos'));
+  comprobar('un líder SÍ ve los prospectos del equipo', puede('LIDER', 'leads.verTodos'));
+  comprobar('un líder NO da de alta personal', !puede('LIDER', 'equipo.gestionar'));
+  comprobar('un repartidor NO entra al panel de ventas', !puede('REPARTIDOR', 'panel.ver'));
+  comprobar('un repartidor NO toca el inventario', !puede('REPARTIDOR', 'inventario.gestionar'));
+  comprobar('almacén NO ve el panel de ventas', !puede('ALMACEN', 'panel.ver'));
+  comprobar('almacén SÍ mueve inventario', puede('ALMACEN', 'inventario.gestionar'));
+  comprobar('un rol desconocido no puede nada', !puede('CUALQUIERA', 'panel.ver'));
+  comprobar('sin rol no se puede nada', !puede(null, 'pedidos.ver'));
+  comprobar('a cada rol se le manda a su inicio', inicioDe('REPARTIDOR') === '/logistica' && inicioDe('ALMACEN') === '/inventario');
+
+  console.log('\nContraseñas');
+  const hash = hashearPassword('demo1234');
+  comprobar('la contraseña correcta se acepta', verificarPassword('demo1234', hash));
+  comprobar('una contraseña equivocada se rechaza', !verificarPassword('demo1235', hash));
+  comprobar('un hash vacío se rechaza', !verificarPassword('demo1234', null));
+  comprobar('dos hashes de la misma clave son distintos (sal propia)', hashearPassword('demo1234') !== hash);
+  comprobar('se rechaza una contraseña corta', revisarPassword('abc1') !== null);
+  comprobar('se rechaza una contraseña sin números', revisarPassword('solamenteletras') !== null);
+  comprobar('se acepta una contraseña válida', revisarPassword('demo1234') === null);
+
+  console.log('\nGuardas en los Server Actions');
+  // Comprobación estructural: cada acción del panel tiene que empezar
+  // autorizando. Ocultar un botón no protege nada, porque la petición se puede
+  // enviar a mano; esta prueba evita que una acción nueva se quede sin guarda.
+  const raizPanel = join(process.cwd(), 'src/app/(panel)');
+  const archivosDeAcciones = readdirSync(raizPanel, { withFileTypes: true })
+    .filter((entrada) => entrada.isDirectory())
+    .map((entrada) => join(raizPanel, entrada.name, 'acciones.ts'));
+
+  let accionesRevisadas = 0;
+  const sinGuarda: string[] = [];
+  for (const archivo of archivosDeAcciones) {
+    let contenido: string;
+    try {
+      contenido = readFileSync(archivo, 'utf8');
+    } catch {
+      continue; // El módulo no tiene acciones.
+    }
+    for (const coincidencia of contenido.matchAll(/export async function (\w+)\(/g)) {
+      const nombre = coincidencia[1];
+      const cuerpo = contenido.slice(coincidencia.index, contenido.indexOf('\n}', coincidencia.index));
+      accionesRevisadas += 1;
+      if (!cuerpo.includes('await autorizar(')) {
+        sinGuarda.push(`${archivo.split('(panel)/')[1]} → ${nombre}`);
+      }
+    }
+  }
+  comprobar(
+    `las ${accionesRevisadas} acciones del panel comprueban permisos`,
+    sinGuarda.length === 0 && accionesRevisadas > 0,
+    sinGuarda.length > 0 ? `sin guarda: ${sinGuarda.join(', ')}` : '',
+  );
 
   // Limpieza: la base queda como estaba antes de la prueba.
   await prisma.comision.deleteMany({ where: { empleadoId: vendedor.id } });

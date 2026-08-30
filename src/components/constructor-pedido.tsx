@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { CONFIG } from '@/lib/config';
-import { formatearDinero } from '@/lib/formato';
+import { CONFIG, PASO_MONEDA } from '@/lib/config';
+import { aUnidadMinima, formatearDinero } from '@/lib/formato';
 
 type Producto = { id: string; nombre: string; precio: number; stock: number };
 type Zona = { id: string; nombre: string; ciudad: string; costoEnvio: number; horasEstimadas: number };
@@ -58,8 +58,8 @@ export function ConstructorPedido({
 
   const zona = zonas.find((z) => z.id === zonaId);
   const costoEnvio = zona?.costoEnvio ?? 0;
-  const descuentoCentavos = Math.max(0, Math.round(Number(descuento.replace(',', '.')) * 100) || 0);
-  const total = Math.max(0, subtotal - descuentoCentavos) + costoEnvio;
+  const descuentoAplicado = Math.max(0, aUnidadMinima(descuento.replace(',', '.')));
+  const total = Math.max(0, subtotal - descuentoAplicado) + costoEnvio;
 
   const excedeStock = lineas.some((linea) => {
     const producto = porId.get(linea.productoId);
@@ -157,7 +157,7 @@ export function ConstructorPedido({
             name="descuento"
             type="number"
             min={0}
-            step="0.01"
+            step={PASO_MONEDA}
             value={descuento}
             onChange={(evento) => setDescuento(evento.target.value)}
             className="campo"
@@ -172,7 +172,7 @@ export function ConstructorPedido({
         </div>
         <div className="flex justify-between">
           <dt className="text-slate-600">Descuento</dt>
-          <dd className="font-medium text-slate-800">−{formatearDinero(descuentoCentavos)}</dd>
+          <dd className="font-medium text-slate-800">−{formatearDinero(descuentoAplicado)}</dd>
         </div>
         <div className="flex justify-between">
           <dt className="text-slate-600">Envío</dt>

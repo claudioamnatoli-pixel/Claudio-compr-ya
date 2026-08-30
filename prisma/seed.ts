@@ -1,14 +1,22 @@
 /**
  * Datos de ejemplo de Compr-Ya.
  *
- * Simula unos tres meses de operación de una tienda que vende por TikTok y
- * cierra por WhatsApp, para poder recorrer la aplicación completa sin haber
- * hecho todavía una sola venta real. Todo es ficticio.
+ * Simula unos tres meses de operación de una tienda paraguaya que capta por
+ * TikTok —vivos y avisos— y cierra por WhatsApp, para poder recorrer la
+ * aplicación completa sin haber hecho todavía una sola venta real.
+ *
+ * Todo es ficticio: los nombres, los teléfonos y las direcciones no
+ * corresponden a personas reales. Los importes están en guaraníes, que no
+ * tienen centavos, así que se guardan tal cual (₲ 250.000 → 250000).
  *
  * Se ejecuta con `npm run db:seed` y es idempotente: borra y vuelve a crear.
  */
 import { PrismaClient } from '@prisma/client';
 import { MOVIMIENTOS_QUE_SUMAN } from '../src/lib/dominio';
+import { hashearPassword } from '../src/lib/password';
+
+/** Contraseña de todas las cuentas de demostración. */
+const PASSWORD_DEMO = 'demo1234';
 
 const prisma = new PrismaClient();
 
@@ -71,28 +79,28 @@ async function main() {
   console.log('Creando zonas de reparto…');
   const zonas = await Promise.all(
     [
-      { nombre: 'Centro', ciudad: 'Ciudad de México', costoEnvio: 4900, horasEstimadas: 24 },
-      { nombre: 'Norte', ciudad: 'Ciudad de México', costoEnvio: 6900, horasEstimadas: 48 },
-      { nombre: 'Sur', ciudad: 'Ciudad de México', costoEnvio: 6900, horasEstimadas: 48 },
-      { nombre: 'Área metropolitana', ciudad: 'Estado de México', costoEnvio: 9900, horasEstimadas: 72 },
-      { nombre: 'Interior (paquetería)', ciudad: 'Nacional', costoEnvio: 14900, horasEstimadas: 120 },
+      { nombre: 'Asunción centro', ciudad: 'Asunción', costoEnvio: 20_000, horasEstimadas: 24 },
+      { nombre: 'Asunción zona norte', ciudad: 'Asunción', costoEnvio: 25_000, horasEstimadas: 24 },
+      { nombre: 'Gran Asunción', ciudad: 'Central', costoEnvio: 35_000, horasEstimadas: 48 },
+      { nombre: 'Ciudad del Este', ciudad: 'Alto Paraná', costoEnvio: 60_000, horasEstimadas: 72 },
+      { nombre: 'Interior (encomienda)', ciudad: 'Nacional', costoEnvio: 75_000, horasEstimadas: 120 },
     ].map((datos) => prisma.zona.create({ data: datos })),
   );
 
   // --- Equipos y personal ---------------------------------------------------
   console.log('Creando equipos y personal…');
-  const equipoAlfa = await prisma.equipo.create({
+  const equipoVivos = await prisma.equipo.create({
     data: {
-      nombre: 'Equipo Alfa',
-      descripcion: 'Cierre de ventas de los videos orgánicos y del perfil.',
-      metaMensual: 25_000_00,
+      nombre: 'Equipo Vivos',
+      descripcion: 'Atiende las transmisiones en vivo, que es donde más se vende.',
+      metaMensual: 90_000_000,
     },
   });
-  const equipoBeta = await prisma.equipo.create({
+  const equipoAvisos = await prisma.equipo.create({
     data: {
-      nombre: 'Equipo Beta',
-      descripcion: 'Atiende transmisiones en vivo y campañas pagadas.',
-      metaMensual: 18_000_00,
+      nombre: 'Equipo Avisos',
+      descripcion: 'Cierra los prospectos que llegan por publicidad pagada.',
+      metaMensual: 70_000_000,
     },
   });
 
@@ -106,6 +114,8 @@ async function main() {
     tasaComision?: number;
     metaMensual?: number;
     diasAntiguedad: number;
+    /// Si es false, la persona existe en la nómina pero no puede entrar.
+    conAcceso?: boolean;
   }) =>
     prisma.empleado.create({
       data: {
@@ -118,116 +128,121 @@ async function main() {
         tasaComision: datos.tasaComision ?? 0,
         metaMensual: datos.metaMensual ?? 0,
         fechaIngreso: haceDias(datos.diasAntiguedad, 9),
+        passwordHash: datos.conAcceso === false ? null : hashDemo,
       },
     });
 
+  // El hash es costoso a propósito; se calcula una vez y se reutiliza, porque
+  // todas las cuentas de demostración comparten contraseña.
+  const hashDemo = hashearPassword(PASSWORD_DEMO);
+
   const admin = await crearEmpleado({
     nombre: 'Claudia Amaya',
-    email: 'claudia@compr-ya.mx',
-    telefono: '5511000001',
+    email: 'claudia@compr-ya.com.py',
+    telefono: '0981234501',
     rol: 'ADMIN',
-    salarioBase: 22_000_00,
+    salarioBase: 9_500_000,
     diasAntiguedad: 400,
   });
 
   const lidiaAlfa = await crearEmpleado({
-    nombre: 'Lidia Ramos',
-    email: 'lidia@compr-ya.mx',
-    telefono: '5511000002',
+    nombre: 'Lidia Benítez',
+    email: 'lidia@compr-ya.com.py',
+    telefono: '0981234502',
     rol: 'LIDER',
-    equipoId: equipoAlfa.id,
-    salarioBase: 14_000_00,
+    equipoId: equipoVivos.id,
+    salarioBase: 6_000_000,
     tasaComision: 0.03,
-    metaMensual: 25_000_00,
+    metaMensual: 90_000_000,
     diasAntiguedad: 320,
   });
   const brunoBeta = await crearEmpleado({
-    nombre: 'Bruno Cifuentes',
-    email: 'bruno@compr-ya.mx',
-    telefono: '5511000003',
+    nombre: 'Bruno Cáceres',
+    email: 'bruno@compr-ya.com.py',
+    telefono: '0981234503',
     rol: 'LIDER',
-    equipoId: equipoBeta.id,
-    salarioBase: 14_000_00,
+    equipoId: equipoAvisos.id,
+    salarioBase: 6_000_000,
     tasaComision: 0.03,
-    metaMensual: 18_000_00,
+    metaMensual: 70_000_000,
     diasAntiguedad: 280,
   });
 
-  await prisma.equipo.update({ where: { id: equipoAlfa.id }, data: { liderId: lidiaAlfa.id } });
-  await prisma.equipo.update({ where: { id: equipoBeta.id }, data: { liderId: brunoBeta.id } });
+  await prisma.equipo.update({ where: { id: equipoVivos.id }, data: { liderId: lidiaAlfa.id } });
+  await prisma.equipo.update({ where: { id: equipoAvisos.id }, data: { liderId: brunoBeta.id } });
 
   const vendedores = await Promise.all([
     crearEmpleado({
-      nombre: 'Ana Sotelo',
-      email: 'ana@compr-ya.mx',
-      telefono: '5511000004',
+      nombre: 'Ana Villalba',
+      email: 'ana@compr-ya.com.py',
+      telefono: '0981234504',
       rol: 'VENDEDOR',
-      equipoId: equipoAlfa.id,
-      salarioBase: 8_000_00,
+      equipoId: equipoVivos.id,
+      salarioBase: 3_200_000,
       tasaComision: 0.08,
-      metaMensual: 9_000_00,
+      metaMensual: 32_000_000,
       diasAntiguedad: 210,
     }),
     crearEmpleado({
-      nombre: 'Diego Palma',
-      email: 'diego@compr-ya.mx',
-      telefono: '5511000005',
+      nombre: 'Diego Ayala',
+      email: 'diego@compr-ya.com.py',
+      telefono: '0981234505',
       rol: 'VENDEDOR',
-      equipoId: equipoAlfa.id,
-      salarioBase: 8_000_00,
+      equipoId: equipoVivos.id,
+      salarioBase: 3_200_000,
       tasaComision: 0.07,
-      metaMensual: 8_000_00,
+      metaMensual: 28_000_000,
       diasAntiguedad: 150,
     }),
     crearEmpleado({
-      nombre: 'Ruth Villalobos',
-      email: 'ruth@compr-ya.mx',
-      telefono: '5511000006',
+      nombre: 'Ruth Ovelar',
+      email: 'ruth@compr-ya.com.py',
+      telefono: '0981234506',
       rol: 'VENDEDOR',
-      equipoId: equipoBeta.id,
-      salarioBase: 8_000_00,
+      equipoId: equipoAvisos.id,
+      salarioBase: 3_200_000,
       tasaComision: 0.08,
-      metaMensual: 9_000_00,
+      metaMensual: 32_000_000,
       diasAntiguedad: 120,
     }),
     crearEmpleado({
-      nombre: 'Iván Quiroz',
-      email: 'ivan@compr-ya.mx',
-      telefono: '5511000007',
+      nombre: 'Iván Fretes',
+      email: 'ivan@compr-ya.com.py',
+      telefono: '0981234507',
       rol: 'VENDEDOR',
-      equipoId: equipoBeta.id,
-      salarioBase: 7_000_00,
+      equipoId: equipoAvisos.id,
+      salarioBase: 2_900_000,
       tasaComision: 0.06,
-      metaMensual: 6_000_00,
+      metaMensual: 20_000_000,
       diasAntiguedad: 45,
     }),
   ]);
 
   const repartidores = await Promise.all([
     crearEmpleado({
-      nombre: 'Marco Tapia',
-      email: 'marco@compr-ya.mx',
-      telefono: '5511000008',
+      nombre: 'Marco Riveros',
+      email: 'marco@compr-ya.com.py',
+      telefono: '0981234508',
       rol: 'REPARTIDOR',
-      salarioBase: 9_000_00,
+      salarioBase: 3_000_000,
       diasAntiguedad: 190,
     }),
     crearEmpleado({
-      nombre: 'Sonia Beltrán',
-      email: 'sonia@compr-ya.mx',
-      telefono: '5511000009',
+      nombre: 'Sonia Bogado',
+      email: 'sonia@compr-ya.com.py',
+      telefono: '0981234509',
       rol: 'REPARTIDOR',
-      salarioBase: 9_000_00,
+      salarioBase: 3_000_000,
       diasAntiguedad: 95,
     }),
   ]);
 
   const almacenista = await crearEmpleado({
-    nombre: 'Hugo Márquez',
-    email: 'hugo@compr-ya.mx',
-    telefono: '5511000010',
+    nombre: 'Hugo Insfrán',
+    email: 'hugo@compr-ya.com.py',
+    telefono: '0981234510',
     rol: 'ALMACEN',
-    salarioBase: 8_500_00,
+    salarioBase: 3_100_000,
     diasAntiguedad: 240,
   });
 
@@ -261,20 +276,20 @@ async function main() {
   // --- Catálogo -------------------------------------------------------------
   console.log('Creando catálogo e inventario inicial…');
   const catalogo = [
-    { sku: 'AUD-PRO-01', nombre: 'Audífonos inalámbricos Pro', categoria: 'Audio', costo: 21_000, precio: 59_900, stock: 60 },
-    { sku: 'AUD-MINI-02', nombre: 'Audífonos deportivos Mini', categoria: 'Audio', costo: 14_500, precio: 39_900, stock: 85 },
-    { sku: 'BOC-BASS-03', nombre: 'Bocina portátil Bass 20 W', categoria: 'Audio', costo: 32_000, precio: 84_900, stock: 34 },
-    { sku: 'REL-FIT-04', nombre: 'Reloj inteligente Fit', categoria: 'Wearables', costo: 38_000, precio: 99_900, stock: 42 },
-    { sku: 'ARO-LUZ-05', nombre: 'Aro de luz 26 cm con trípode', categoria: 'Creadores', costo: 25_000, precio: 64_900, stock: 28 },
-    { sku: 'MIC-LAV-06', nombre: 'Micrófono de solapa inalámbrico', categoria: 'Creadores', costo: 18_000, precio: 49_900, stock: 51 },
-    { sku: 'SOP-CEL-07', nombre: 'Soporte de celular flexible', categoria: 'Creadores', costo: 6_500, precio: 19_900, stock: 120 },
-    { sku: 'ORG-COC-08', nombre: 'Organizador de cocina 5 niveles', categoria: 'Hogar', costo: 22_000, precio: 57_900, stock: 24 },
-    { sku: 'LAM-LED-09', nombre: 'Lámpara LED de escritorio', categoria: 'Hogar', costo: 15_000, precio: 42_900, stock: 47 },
-    { sku: 'BOT-TER-10', nombre: 'Botella térmica 750 ml', categoria: 'Hogar', costo: 9_000, precio: 27_900, stock: 96 },
-    { sku: 'MOC-VIA-11', nombre: 'Mochila antirrobo con USB', categoria: 'Accesorios', costo: 28_000, precio: 74_900, stock: 19 },
-    { sku: 'CAR-RAP-12', nombre: 'Cargador rápido 65 W', categoria: 'Accesorios', costo: 16_000, precio: 44_900, stock: 8 },
-    { sku: 'SET-BEL-13', nombre: 'Set de brochas de maquillaje', categoria: 'Belleza', costo: 11_000, precio: 34_900, stock: 4 },
-    { sku: 'RIZ-CAB-14', nombre: 'Rizador de cabello automático', categoria: 'Belleza', costo: 34_000, precio: 89_900, stock: 31 },
+    { sku: 'AUD-PRO-01', nombre: 'Auriculares inalámbricos Pro', categoria: 'Audio', costo: 95_000, precio: 250_000, stock: 60 },
+    { sku: 'AUD-MINI-02', nombre: 'Auriculares deportivos Mini', categoria: 'Audio', costo: 62_000, precio: 165_000, stock: 85 },
+    { sku: 'BOC-BASS-03', nombre: 'Parlante portátil Bass 20 W', categoria: 'Audio', costo: 135_000, precio: 350_000, stock: 34 },
+    { sku: 'REL-FIT-04', nombre: 'Reloj inteligente Fit', categoria: 'Wearables', costo: 160_000, precio: 420_000, stock: 42 },
+    { sku: 'ARO-LUZ-05', nombre: 'Aro de luz 26 cm con trípode', categoria: 'Creadores', costo: 105_000, precio: 275_000, stock: 28 },
+    { sku: 'MIC-LAV-06', nombre: 'Micrófono de solapa inalámbrico', categoria: 'Creadores', costo: 78_000, precio: 210_000, stock: 51 },
+    { sku: 'SOP-CEL-07', nombre: 'Soporte de celular flexible', categoria: 'Creadores', costo: 28_000, precio: 85_000, stock: 120 },
+    { sku: 'ORG-COC-08', nombre: 'Organizador de cocina 5 niveles', categoria: 'Hogar', costo: 95_000, precio: 245_000, stock: 24 },
+    { sku: 'LAM-LED-09', nombre: 'Lámpara LED de escritorio', categoria: 'Hogar', costo: 65_000, precio: 180_000, stock: 47 },
+    { sku: 'TER-GUA-10', nombre: 'Termo para tereré con guampa', categoria: 'Hogar', costo: 85_000, precio: 230_000, stock: 96 },
+    { sku: 'MOC-VIA-11', nombre: 'Mochila antirrobo con USB', categoria: 'Accesorios', costo: 120_000, precio: 315_000, stock: 19 },
+    { sku: 'CAR-RAP-12', nombre: 'Cargador rápido 65 W', categoria: 'Accesorios', costo: 68_000, precio: 190_000, stock: 8 },
+    { sku: 'SET-BEL-13', nombre: 'Set de brochas de maquillaje', categoria: 'Belleza', costo: 47_000, precio: 145_000, stock: 4 },
+    { sku: 'RIZ-CAB-14', nombre: 'Rizador de cabello automático', categoria: 'Belleza', costo: 145_000, precio: 380_000, stock: 31 },
   ];
 
   const productos = [];
@@ -311,11 +326,11 @@ async function main() {
   console.log('Creando campañas de TikTok…');
   const campanas = await Promise.all(
     [
-      { nombre: '¿Audífonos de $600 valen la pena?', tipo: 'VIDEO', hashtags: '#audifonos #gadgets #mexico', presupuesto: 0, dias: 62 },
-      { nombre: 'Live de viernes — liquidación de audio', tipo: 'LIVE', hashtags: '#envivo #ofertas', presupuesto: 0, dias: 30 },
-      { nombre: 'Ads — Reloj Fit público frío', tipo: 'ADS', hashtags: '#smartwatch', presupuesto: 12_000_00, dias: 45 },
-      { nombre: 'Setup de creador por menos de $2000', tipo: 'VIDEO', hashtags: '#creadores #setup', presupuesto: 0, dias: 25 },
-      { nombre: 'Ads — Hogar y organización', tipo: 'ADS', hashtags: '#hogar #organizacion', presupuesto: 8_000_00, dias: 18 },
+      { nombre: 'Vivo de los viernes — liquidación de audio', tipo: 'LIVE', hashtags: '#envivo #ofertas #paraguay', presupuesto: 0, dias: 62 },
+      { nombre: 'Vivo del mediodía — hogar y cocina', tipo: 'LIVE', hashtags: '#envivo #hogar', presupuesto: 0, dias: 30 },
+      { nombre: 'Aviso — Reloj Fit, público frío', tipo: 'ADS', hashtags: '#smartwatch', presupuesto: 3_500_000, dias: 45 },
+      { nombre: 'Aviso — Termo y guampa para el verano', tipo: 'ADS', hashtags: '#terere #verano', presupuesto: 2_800_000, dias: 25 },
+      { nombre: '¿Auriculares de ₲ 250.000 valen la pena?', tipo: 'VIDEO', hashtags: '#auriculares #gadgets', presupuesto: 0, dias: 18 },
       { nombre: 'Enlace fijo del perfil', tipo: 'PERFIL', hashtags: null, presupuesto: 0, dias: 120 },
     ].map((c) =>
       prisma.campana.create({
@@ -324,7 +339,7 @@ async function main() {
           tipo: c.tipo,
           hashtags: c.hashtags,
           presupuesto: c.presupuesto,
-          urlVideo: c.tipo === 'VIDEO' || c.tipo === 'LIVE' ? 'https://www.tiktok.com/@compr.ya' : null,
+          urlVideo: c.tipo === 'VIDEO' || c.tipo === 'LIVE' ? 'https://www.tiktok.com/@compr.ya.py' : null,
           fechaInicio: haceDias(c.dias, 12),
         },
       }),
@@ -338,43 +353,43 @@ async function main() {
       nombre: 'Primer contacto',
       etapa: 'NUEVO',
       cuerpo:
-        '¡Hola {{cliente}}! 👋 Soy {{vendedor}} de {{tienda}}. Vi que te interesó {{producto}} por nuestro TikTok.\n\nSigue disponible en {{precio}} con envío a domicilio y pago contra entrega. ¿Te lo aparto?',
+        '¡Hola {{cliente}}! 👋 Soy {{vendedor}} de {{tienda}}. Vi que te interesó {{producto}} en nuestro vivo de TikTok.\n\nSigue disponible a {{precio}} con envío a domicilio y pagás cuando lo recibís. ¿Te lo aparto?',
     },
     {
       nombre: 'Reenganche sin respuesta',
       etapa: 'CONTACTADO',
       cuerpo:
-        'Hola {{cliente}}, ¿seguís interesada/o en {{producto}}? 😊 Me quedan pocas piezas y no quiero que te quedes sin la tuya. Cualquier duda me dices.',
+        'Hola {{cliente}}, ¿seguís interesada/o en {{producto}}? 😊 Me quedan pocas unidades y no quiero que te quedes sin la tuya. Cualquier duda me avisás.',
     },
     {
       nombre: 'Detalle de producto',
       etapa: 'EN_CONVERSACION',
       cuerpo:
-        '{{producto}} — {{precio}}\n\n✅ Garantía de 3 meses\n✅ Envío a {{ciudad}} en 24 a 48 h\n✅ Pagas cuando lo recibes\n\n¿Te comparto el enlace para confirmar tu pedido?',
+        '{{producto}} — {{precio}}\n\n✅ Garantía de 3 meses\n✅ Envío a {{ciudad}} en 24 a 48 h\n✅ Pagás cuando lo recibís\n\n¿Te tomo el pedido?',
     },
     {
       nombre: 'Confirmación de datos',
       etapa: 'COTIZADO',
       cuerpo:
-        'Perfecto {{cliente}} 🙌 Para cerrar tu pedido necesito:\n\n1️⃣ Nombre completo\n2️⃣ Calle, número y colonia\n3️⃣ Alguna referencia de la casa\n4️⃣ Teléfono de contacto\n\nEn cuanto me los mandes lo dejo programado.',
+        'Perfecto {{cliente}} 🙌 Para cerrar tu pedido necesito:\n\n1️⃣ Nombre completo\n2️⃣ Calle, número y barrio\n3️⃣ Alguna referencia de la casa\n4️⃣ Teléfono de contacto\n\nEn cuanto me los pasés lo dejo programado.',
     },
     {
       nombre: 'Pedido confirmado',
       etapa: 'GANADO',
       cuerpo:
-        '¡Listo {{cliente}}! ✅ Tu pedido {{pedido}} quedó confirmado.\n\nTe llega en 24 a 48 h y pagas al recibir. Te aviso por aquí cuando salga a ruta. ¡Gracias por comprarnos! 💚',
+        '¡Listo {{cliente}}! ✅ Tu pedido {{pedido}} quedó confirmado.\n\nTe llega en 24 a 48 h y pagás al recibir. Te aviso por acá cuando salga a reparto. ¡Gracias por comprarnos! 💚',
     },
     {
       nombre: 'Pedido en ruta',
       etapa: 'GANADO',
       cuerpo:
-        'Hola {{cliente}}, tu pedido {{pedido}} ya va en camino 🛵 Llega hoy. Por favor ten a la mano el pago exacto. ¡Gracias!',
+        'Hola {{cliente}}, tu pedido {{pedido}} ya va en camino 🛵 Llega hoy. Por favor tené a mano el importe justo. ¡Gracias!',
     },
     {
       nombre: 'Recuperar entrega fallida',
       etapa: 'GANADO',
       cuerpo:
-        'Hola {{cliente}}, pasamos a entregar tu pedido {{pedido}} y no encontramos a nadie 😕 ¿Qué día y horario te queda mejor para reprogramar?',
+        'Hola {{cliente}}, pasamos a entregar tu pedido {{pedido}} y no encontramos a nadie 😕 ¿Qué día y horario te viene mejor para reprogramar?',
     },
   ];
   const plantillasWA = await Promise.all(
@@ -385,23 +400,33 @@ async function main() {
   console.log('Creando prospectos, conversaciones y pedidos…');
 
   const nombresClientes = [
-    'María Fernanda López', 'José Luis Herrera', 'Karla Jiménez', 'Andrés Mota',
-    'Patricia Ruiz', 'Emiliano Vega', 'Sofía Castañeda', 'Ricardo Ibarra',
-    'Gabriela Núñez', 'Tomás Reséndiz', 'Alejandra Pineda', 'Óscar Fuentes',
-    'Valeria Arriaga', 'Sergio Bautista', 'Daniela Escobar', 'Mauricio Salas',
-    'Rosa Elena Trejo', 'Fernando Aguilar', 'Lucía Zamora', 'Néstor Peralta',
-    'Itzel Camacho', 'Rodrigo Blanco', 'Mariana Ochoa', 'Julio César Rivas',
-    'Paola Guzmán', 'Héctor Domínguez', 'Renata Solís', 'Adrián Cuevas',
-    'Norma Cárdenas', 'Pablo Ordóñez', 'Cecilia Mendoza', 'Ismael Robles',
-    'Verónica Lara', 'Arturo Nájera', 'Brenda Cortés', 'Luis Ángel Serrano',
-    'Elena Márquez', 'Javier Ontiveros', 'Silvia Padilla', 'Raúl Estrada',
-    'Miriam Tovar', 'Enrique Valdés', 'Carolina Bermúdez', 'Gustavo Linares',
-    'Ximena Rojas', 'Alan Cervantes', 'Teresa Godínez', 'Marcos Delgado',
+    'María Fernanda Duarte', 'José Luis Ramírez', 'Karla Giménez', 'Andrés Ortiz',
+    'Patricia Rojas', 'Emiliano Vera', 'Sofía Cabañas', 'Ricardo Aquino',
+    'Gabriela Núñez', 'Tomás Escobar', 'Alejandra Pineda', 'Óscar Fleitas',
+    'Valeria Arce', 'Sergio Bareiro', 'Daniela Segovia', 'Mauricio Salinas',
+    'Rosa Elena Torres', 'Fernando Aguilera', 'Lucía Zárate', 'Néstor Peralta',
+    'Itzel Chamorro', 'Rodrigo Blanco', 'Mariana Ocampos', 'Julio César Rivas',
+    'Paola Galeano', 'Héctor Domínguez', 'Renata Solís', 'Adrián Cuevas',
+    'Norma Cardozo', 'Pablo Ortigoza', 'Cecilia Medina', 'Ismael Rolón',
+    'Verónica Lara', 'Arturo Notario', 'Brenda Cortés', 'Luis Ángel Servín',
+    'Elena Martínez', 'Javier Olmedo', 'Silvia Paredes', 'Raúl Estigarribia',
+    'Miriam Toledo', 'Enrique Valdez', 'Carolina Bermúdez', 'Gustavo Leguizamón',
+    'Ximena Rojas', 'Alan Cervantes', 'Teresa Godoy', 'Marcos Delgado',
   ];
-  const calles = ['Av. Insurgentes', 'Calle Morelos', 'Av. Revolución', 'Calle Hidalgo', 'Av. Universidad', 'Calle 5 de Mayo', 'Av. Chapultepec', 'Calle Juárez'];
-  const colonias = ['Del Valle', 'Roma Norte', 'Narvarte', 'Coyoacán', 'Escandón', 'Lindavista', 'Iztacalco', 'Satélite'];
-  const referencias = ['Portón negro', 'Frente a la farmacia', 'Edificio azul, timbre 3', 'Junto a la papelería', 'Casa de dos pisos con reja blanca'];
-  const motivosPerdida = ['Le pareció caro', 'Ya lo compró en otro lado', 'Dejó de responder', 'No hay cobertura de envío', 'Sólo preguntaba'];
+  const calles = [
+    'Avda. Mariscal López', 'Avda. España', 'Calle Palma', 'Avda. Eusebio Ayala',
+    'Avda. San Martín', 'Calle Estrella', 'Avda. Artigas', 'Avda. Gral. Santos',
+  ];
+  const colonias = [
+    'Villa Morra', 'Recoleta', 'Las Mercedes', 'Sajonia',
+    'Trinidad', 'San Vicente', 'Barrio Jara', 'Mburicaó',
+  ];
+  const referencias = [
+    'Portón negro', 'Frente a la farmacia', 'Edificio azul, timbre 3',
+    'Al lado de la despensa', 'Casa de dos pisos con reja blanca',
+    'Casi esquina, después del semáforo',
+  ];
+  const motivosPerdida = ['Le pareció caro', 'Ya lo compró en otro lado', 'Dejó de responder', 'No llegamos con el envío', 'Sólo preguntaba'];
 
   const origenPorCampana: Record<string, string> = {
     VIDEO: 'TIKTOK_VIDEO',
@@ -422,7 +447,10 @@ async function main() {
     const campana = elegir(campanas);
     const producto = elegir(productos);
     const vendedor = elegir(vendedores);
-    const ciudad = elegir(['Ciudad de México', 'Estado de México', 'Guadalajara', 'Monterrey', 'Puebla']);
+    const ciudad = elegir([
+      'Asunción', 'Asunción', 'San Lorenzo', 'Luque', 'Fernando de la Mora',
+      'Lambaré', 'Capiatá', 'Ciudad del Este', 'Encarnación',
+    ]);
 
     // Los leads más antiguos ya tuvieron tiempo de resolverse; los recientes no.
     let estado: string;
@@ -434,7 +462,8 @@ async function main() {
       data: {
         codigo: `LEAD-${String(contadorLead).padStart(4, '0')}`,
         nombre: nombreCliente,
-        telefono: `55${entre(10000000, 99999999)}`,
+        // Móvil paraguayo: 09xx seguido de seis dígitos.
+        telefono: `09${elegir([71, 72, 75, 76, 81, 82, 83, 85, 86, 91, 92, 94, 95, 96])}${entre(100000, 999999)}`,
         ciudad,
         origen: origenPorCampana[campana.tipo] ?? 'OTRO',
         estado,
@@ -457,17 +486,17 @@ async function main() {
         },
       ];
       if (estado !== 'CONTACTADO') {
-        guion.push({ direccion: 'ENTRANTE', cuerpo: elegir(['Hola, sí me interesa. ¿Cuánto cuesta?', 'Buenas, ¿hacen envíos a mi zona?', '¿Sigue disponible?']) });
+        guion.push({ direccion: 'ENTRANTE', cuerpo: elegir(['Hola, sí me interesa. ¿Cuánto sale?', 'Buenas, ¿hacen envío a mi zona?', '¿Todavía hay disponible?']) });
         guion.push({
           direccion: 'SALIENTE',
-          cuerpo: `${producto.nombre} está en $${(producto.precio / 100).toFixed(2)} con envío a ${ciudad} y pago contra entrega. ¿Te lo aparto?`,
+          cuerpo: `${producto.nombre} está a ₲ ${producto.precio.toLocaleString('es-PY')} con envío a ${ciudad} y pago contra entrega. ¿Te lo aparto?`,
           plantillaId: plantillasWA[2].id,
         });
       }
       if (estado === 'GANADO') {
         guion.push({ direccion: 'ENTRANTE', cuerpo: 'Sí, lo quiero. Te paso mis datos.' });
       } else if (estado === 'PERDIDO') {
-        guion.push({ direccion: 'ENTRANTE', cuerpo: elegir(['Gracias, lo voy a pensar.', 'Está un poco caro para mí.', 'Ya lo compré en otro lugar.']) });
+        guion.push({ direccion: 'ENTRANTE', cuerpo: elegir(['Gracias, lo voy a pensar.', 'Está un poco caro para mí.', 'Ya lo compré en otro lado.']) });
       }
 
       let desplazamiento = 0;
@@ -490,7 +519,14 @@ async function main() {
 
     // --- El lead ganado se convierte en pedido -------------------------------
     contadorPedido += 1;
-    const zona = ciudad === 'Ciudad de México' ? elegir(zonas.slice(0, 3)) : ciudad === 'Estado de México' ? zonas[3] : zonas[4];
+    const zona =
+      ciudad === 'Asunción'
+        ? elegir(zonas.slice(0, 2))
+        : ['San Lorenzo', 'Luque', 'Fernando de la Mora', 'Lambaré', 'Capiatá'].includes(ciudad)
+          ? zonas[2]
+          : ciudad === 'Ciudad del Este'
+            ? zonas[3]
+            : zonas[4];
     const pedidoAt = new Date(creadoAt.getTime() + entre(2, 30) * 60 * 60 * 1000);
 
     // Uno o dos productos por pedido; el segundo es una venta cruzada.
@@ -610,7 +646,7 @@ async function main() {
         fechaProgramada: new Date(pedidoAt.getTime() + zona.horasEstimadas * 60 * 60 * 1000),
         fechaEntrega: estadoEnvio === 'ENTREGADO' ? new Date(pedidoAt.getTime() + entre(20, 90) * 60 * 60 * 1000) : null,
         intentos: estadoEnvio === 'ENTREGADO' ? (probabilidad(0.2) ? 2 : 1) : estadoEnvio === 'DEVUELTO' ? 3 : 0,
-        costoReal: necesitaRepartidor ? zona.costoEnvio + entre(-1500, 2500) : null,
+        costoReal: necesitaRepartidor ? zona.costoEnvio + entre(-8_000, 15_000) : null,
         montoCobrado: estadoEnvio === 'ENTREGADO' && metodoPago === 'CONTRA_ENTREGA' ? total : null,
         observaciones: estadoEnvio === 'DEVUELTO' ? 'Tres intentos sin éxito, el cliente no respondió.' : null,
         createdAt: pedidoAt,
@@ -676,6 +712,14 @@ async function main() {
     asistencias: await prisma.asistencia.count(),
   };
   console.log('Datos de ejemplo creados:', resumen);
+  console.log(
+    `\nCuentas de acceso: todas usan la contraseña "${PASSWORD_DEMO}".\n` +
+      '  claudia@compr-ya.com.py  administración (ve todo)\n' +
+      '  lidia@compr-ya.com.py    líder de equipo\n' +
+      '  ana@compr-ya.com.py      vendedora (sólo sus prospectos)\n' +
+      '  marco@compr-ya.com.py    repartidor (sólo logística)\n' +
+      '  hugo@compr-ya.com.py     almacén (sólo inventario)',
+  );
 }
 
 main()

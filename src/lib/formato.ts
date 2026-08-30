@@ -1,35 +1,39 @@
-import { CONFIG } from './config';
+import { CONFIG, FACTOR_MONEDA } from './config';
 
 /**
- * Formatea un entero en centavos como texto monetario.
- * `formatearDinero(129900)` → "$1,299.00"
+ * Formatea un importe guardado en la unidad mínima de la moneda.
+ * En guaraníes `formatearDinero(250000)` → "Gs. 250.000".
+ * En una moneda con centavos, `formatearDinero(129900)` → "$1,299.00".
  */
-export function formatearDinero(centavos: number): string {
+export function formatearDinero(minimos: number): string {
   return new Intl.NumberFormat(CONFIG.locale, {
     style: 'currency',
     currency: CONFIG.moneda,
-  }).format(centavos / 100);
+  }).format(minimos / FACTOR_MONEDA);
 }
 
 /** Igual que `formatearDinero` pero sin decimales, para cifras grandes. */
-export function formatearDineroCorto(centavos: number): string {
+export function formatearDineroCorto(minimos: number): string {
   return new Intl.NumberFormat(CONFIG.locale, {
     style: 'currency',
     currency: CONFIG.moneda,
     maximumFractionDigits: 0,
-  }).format(centavos / 100);
+  }).format(minimos / FACTOR_MONEDA);
 }
 
-/** Convierte lo que escribe una persona ("1299.50") a centavos (129950). */
-export function aCentavos(valor: string | number): number {
+/**
+ * Convierte lo que escribe una persona en un formulario a la unidad mínima.
+ * En guaraníes "250000" → 250000; en pesos "1299.50" → 129950.
+ */
+export function aUnidadMinima(valor: string | number): number {
   const numero = typeof valor === 'number' ? valor : Number(String(valor).replace(/[^0-9.-]/g, ''));
   if (!Number.isFinite(numero)) return 0;
-  return Math.round(numero * 100);
+  return Math.round(numero * FACTOR_MONEDA);
 }
 
-/** Convierte centavos a un número decimal apto para un <input type="number">. */
-export function aUnidades(centavos: number): number {
-  return Math.round(centavos) / 100;
+/** Convierte un importe guardado al número que espera un <input type="number">. */
+export function aUnidades(minimos: number): number {
+  return FACTOR_MONEDA === 1 ? Math.round(minimos) : Math.round(minimos) / FACTOR_MONEDA;
 }
 
 export function formatearNumero(valor: number): string {
@@ -106,4 +110,16 @@ export function paraInputFechaHora(fecha: Date | string | null | undefined): str
   return `${d.getFullYear()}-${doble(d.getMonth() + 1)}-${doble(d.getDate())}T${doble(
     d.getHours(),
   )}:${doble(d.getMinutes())}`;
+}
+
+/**
+ * Formatea un multiplicador de retorno: "2,4×".
+ * Usa el separador decimal del idioma, para no mezclar "2.4" con "2,4" en la
+ * misma pantalla.
+ */
+export function formatearMultiplicador(veces: number): string {
+  return `${new Intl.NumberFormat(CONFIG.locale, {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(veces)}×`;
 }
