@@ -10,6 +10,7 @@ import {
   usuarioActual,
   verificarPassword,
 } from '@/lib/auth';
+import { auditar } from '@/lib/auditoria';
 import { inicioDe } from '@/lib/permisos';
 import { prisma } from '@/lib/prisma';
 import { fallo, textoObligatorio, validar, type ResultadoAccion } from '@/lib/acciones';
@@ -39,9 +40,13 @@ export async function iniciarSesionAccion(
     // Se verifica igual contra un hash de descarte para que la respuesta tarde
     // lo mismo exista o no la cuenta.
     verificarPassword(password, 'scrypt$00$00');
+    await registrarIntentoFallido(email);
     return generico;
   }
-  if (!verificarPassword(password, empleado.passwordHash)) return generico;
+  if (!verificarPassword(password, empleado.passwordHash)) {
+    await registrarIntentoFallido(email, empleado.nombre);
+    return generico;
+  }
   if (!empleado.activo) {
     return fallo('Esta cuenta está dada de baja. Habla con administración.');
   }
@@ -49,6 +54,13 @@ export async function iniciarSesionAccion(
   const cabeceras = await headers();
   await iniciarSesion(empleado.id, cabeceras.get('user-agent'));
   await limpiarSesionesCaducadas();
+  await auditar(prisma, {
+    accion: 'sesion.iniciada',
+    entidad: 'Empleado',
+    entidadId: empleado.id,
+    resumen: `${empleado.nombre} inició sesión`,
+    actor: { id: empleado.id, nombre: empleado.nombre },
+  });
 
   redirect(empleado.debeCambiarPassword ? '/cambiar-password' : inicioDe(empleado.rol));
 }
@@ -63,4 +75,20 @@ export async function destinoSiYaEntro(): Promise<string | null> {
   const usuario = await usuarioActual();
   if (!usuario) return null;
   return usuario.debeCambiarPassword ? '/cambiar-password' : inicioDe(usuario.rol);
+}
+
+/**
+ * Deja constancia de un intento de acceso fallido. Es lo que permite notar que
+ * alguien está probando contraseñas; nunca se guarda lo que se intentó como
+ * contraseña, sólo el correo con el que se probó.
+ */
+async function registrarIntentoFallido(email: string, nombre?: string) {
+  await auditar(prisma, {
+    accion: 'sesion.fallida',
+    entidad: 'Empleado',
+    resumen: nombre
+      ? `Contraseña incorrecta para ${nombre}`
+      : `Intento de acceso con un correo no registrado: ${email}`,
+    actor: { nombre: nombre ?? email },
+  });
 }

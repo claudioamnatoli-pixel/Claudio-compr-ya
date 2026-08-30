@@ -1,4 +1,4 @@
-import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
+import { randomBytes, randomInt, scryptSync, timingSafeEqual } from 'node:crypto';
 
 /**
  * Hash y verificación de contraseñas.
@@ -45,4 +45,23 @@ export function revisarPassword(password: string): string | null {
     return 'La contraseña debe combinar letras y números.';
   }
   return null;
+}
+
+/**
+ * Genera una contraseña provisional legible por teléfono.
+ *
+ * Se arma con sílabas y dígitos en lugar de caracteres al azar porque alguien
+ * de administración va a tener que dictarla, y "tanibu-4827" se dicta sin
+ * confusiones. No lleva las letras y cifras que se confunden al leerlas
+ * (l/1, o/0). Es provisional: quien entra con ella tiene que cambiarla.
+ */
+export function generarPasswordProvisional(): string {
+  const consonantes = 'bcdfgjkmnprstvz';
+  const vocales = 'aeiu';
+  let silabas = '';
+  for (let i = 0; i < 3; i += 1) {
+    silabas += consonantes[randomInt(consonantes.length)] + vocales[randomInt(vocales.length)];
+  }
+  const digitos = String(randomInt(1000, 10000));
+  return `${silabas}-${digitos}`;
 }

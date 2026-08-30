@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { BotonAccion, Campo, Formulario } from '@/components/formulario';
+import { PanelAcceso } from '@/components/panel-acceso';
 import {
   EncabezadoPagina,
   EncabezadoTabla,
@@ -28,13 +29,20 @@ import {
   formatearPeriodo,
   formatearPorcentaje,
   periodoDe,
+  tiempoRelativo,
 } from '@/lib/formato';
 import { prisma } from '@/lib/prisma';
 import { requerirSesion } from '@/lib/guardias';
 import { inicioDe, puede, puedeVerEmpleado } from '@/lib/permisos';
 import { redirect } from 'next/navigation';
 import { formatearTelefono } from '@/lib/whatsapp';
-import { actualizarEmpleado, pagarComisiones, registrarAsistencia } from '../acciones';
+import {
+  actualizarEmpleado,
+  otorgarAcceso,
+  pagarComisiones,
+  registrarAsistencia,
+  revocarAcceso,
+} from '../acciones';
 
 export const dynamic = 'force-dynamic';
 
@@ -52,6 +60,7 @@ export default async function EmpleadoPage({ params }: { params: Promise<{ id: s
   // ajenos sólo con permiso explícito.
   const puedeVerDinero = esPropia || puede(usuario.rol, 'equipo.verRemuneracion');
   const puedeRegistrarAsistencia = puede(usuario.rol, 'asistencia.registrar');
+  const puedeGestionarAcceso = puede(usuario.rol, 'acceso.gestionar');
 
   const periodo = periodoDe();
   const desdeEsteMes = inicioDelMes();
@@ -397,6 +406,38 @@ export default async function EmpleadoPage({ params }: { params: Promise<{ id: s
           </div>
         </Tarjeta>
       </div>
+
+      {puedeGestionarAcceso ? (
+        <Tarjeta className="mt-4">
+          <TarjetaTitulo
+            titulo="Acceso al sistema"
+            descripcion={
+              empleado.passwordHash
+                ? `Puede entrar con ${empleado.email}.${
+                    empleado.debeCambiarPassword
+                      ? ' Tiene una contraseña provisional pendiente de cambiar.'
+                      : ''
+                  }${
+                    empleado.ultimoAccesoAt
+                      ? ` Última entrada ${tiempoRelativo(empleado.ultimoAccesoAt)}.`
+                      : ' Todavía no ha entrado.'
+                  }`
+                : 'Esta persona está en la nómina pero no puede entrar al sistema.'
+            }
+            accion={
+              <Etiqueta tono={empleado.passwordHash ? 'verde' : 'gris'}>
+                {empleado.passwordHash ? 'Con acceso' : 'Sin acceso'}
+              </Etiqueta>
+            }
+          />
+          <PanelAcceso
+            empleadoId={empleado.id}
+            nombre={empleado.nombre}
+            email={empleado.email}
+            tieneAcceso={empleado.passwordHash !== null}
+          />
+        </Tarjeta>
+      ) : null}
 
       {esVendedor ? (
         <div className="mt-4 grid gap-4 lg:grid-cols-2">

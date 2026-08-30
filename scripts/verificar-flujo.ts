@@ -6,7 +6,13 @@
 import { PrismaClient } from '@prisma/client';
 import { detallePedido, transicionarPedido, TransicionInvalida } from '../src/lib/pedidos';
 import { aplicarMovimiento, StockInsuficiente } from '../src/lib/inventario';
-import { hashearPassword, revisarPassword, verificarPassword } from '../src/lib/password';
+import {
+  generarPasswordProvisional,
+  hashearPassword,
+  revisarPassword,
+  verificarPassword,
+} from '../src/lib/password';
+import { compararCampos, leerCambios } from '../src/lib/auditoria';
 import { inicioDe, puede } from '../src/lib/permisos';
 import { aUnidadMinima, formatearDinero } from '../src/lib/formato';
 import { CONFIG, FACTOR_MONEDA } from '../src/lib/config';
@@ -160,6 +166,8 @@ async function main() {
   comprobar('un rol desconocido no puede nada', !puede('CUALQUIERA', 'panel.ver'));
   comprobar('sin rol no se puede nada', !puede(null, 'pedidos.ver'));
   comprobar('a cada rol se le manda a su inicio', inicioDe('REPARTIDOR') === '/logistica' && inicioDe('ALMACEN') === '/inventario');
+  comprobar('sólo administración reparte contraseñas', puede('ADMIN', 'acceso.gestionar') && !puede('LIDER', 'acceso.gestionar'));
+  comprobar('sólo administración lee la auditoría', puede('ADMIN', 'auditoria.ver') && !puede('LIDER', 'auditoria.ver'));
 
   console.log('\nContraseñas');
   const hash = hashearPassword('demo1234');
@@ -170,6 +178,54 @@ async function main() {
   comprobar('se rechaza una contraseña corta', revisarPassword('abc1') !== null);
   comprobar('se rechaza una contraseña sin números', revisarPassword('solamenteletras') !== null);
   comprobar('se acepta una contraseña válida', revisarPassword('demo1234') === null);
+
+  // La contraseña provisional se genera sola, así que tiene que cumplir siempre
+  // las reglas: si una de cada mil no las cumpliera, fallaría al azar.
+  const provisionales = Array.from({ length: 500 }, () => generarPasswordProvisional());
+  comprobar(
+    'las 500 contraseñas provisionales generadas cumplen las reglas',
+    provisionales.every((p) => revisarPassword(p) === null),
+    provisionales.find((p) => revisarPassword(p) !== null) ?? provisionales[0],
+  );
+  comprobar(
+    'no se repiten entre sí',
+    new Set(provisionales).size > 490,
+    `${new Set(provisionales).size} distintas de 500`,
+  );
+
+  console.log('\nAuditoría');
+  const antes = { salarioBase: 2_900_000, tasaComision: 0.06, nombre: 'Ana', activo: true };
+  comprobar(
+    'no se registra nada si no cambió nada',
+    compararCampos(antes, { salarioBase: 2_900_000, nombre: 'Ana' }, [
+      'salarioBase',
+      'nombre',
+    ]) === null,
+  );
+  const diferencias = compararCampos(antes, { salarioBase: 3_200_000, nombre: 'Ana' }, [
+    'salarioBase',
+    'nombre',
+    'activo',
+  ]);
+  comprobar('se detecta el campo que cambió', diferencias?.salarioBase?.despues === 3_200_000);
+  comprobar('no se anotan los campos que no cambiaron', diferencias !== null && !('nombre' in diferencias));
+  comprobar(
+    'un campo ausente no se inventa como cambio',
+    diferencias !== null && !('activo' in diferencias),
+  );
+  comprobar(
+    'se conserva el valor anterior, que es lo que da sentido al registro',
+    diferencias?.salarioBase?.antes === 2_900_000,
+  );
+  comprobar(
+    'un false que pasa a true se detecta (no se confunde con vacío)',
+    compararCampos({ activo: false }, { activo: true }, ['activo'])?.activo?.despues === true,
+  );
+  comprobar('un JSON de cambios corrupto no rompe la lectura', leerCambios('{roto') === null);
+  comprobar('sin cambios guardados se devuelve null', leerCambios(null) === null);
+
+  const registradas = await prisma.auditoria.count();
+  comprobar('el registro de auditoría tiene entradas', registradas > 0, `${registradas} entradas`);
 
   console.log('\nGuardas en los Server Actions');
   // Comprobación estructural: cada acción del panel tiene que empezar
@@ -202,6 +258,34 @@ async function main() {
     `las ${accionesRevisadas} acciones del panel comprueban permisos`,
     sinGuarda.length === 0 && accionesRevisadas > 0,
     sinGuarda.length > 0 ? `sin guarda: ${sinGuarda.join(', ')}` : '',
+  );
+
+  // Las acciones que tocan dinero o accesos tienen que dejar rastro.
+  const debenAuditar: Record<string, string[]> = {
+    'equipo/acciones.ts': [
+      'crearEmpleado',
+      'actualizarEmpleado',
+      'pagarComisiones',
+      'crearEquipo',
+      'otorgarAcceso',
+      'revocarAcceso',
+    ],
+    'inventario/acciones.ts': ['crearProducto', 'actualizarProducto'],
+    'pedidos/acciones.ts': ['cambiarEstadoPedido'],
+  };
+  const sinAuditar: string[] = [];
+  for (const [archivo, funciones] of Object.entries(debenAuditar)) {
+    const contenido = readFileSync(join(raizPanel, archivo), 'utf8');
+    for (const nombre of funciones) {
+      const inicio = contenido.indexOf(`export async function ${nombre}(`);
+      const cuerpo = contenido.slice(inicio, contenido.indexOf('\n}', inicio));
+      if (inicio === -1 || !cuerpo.includes('auditar(')) sinAuditar.push(`${archivo} → ${nombre}`);
+    }
+  }
+  comprobar(
+    'las acciones que tocan dinero o accesos dejan rastro en la auditoría',
+    sinAuditar.length === 0,
+    sinAuditar.length > 0 ? `sin auditar: ${sinAuditar.join(', ')}` : '',
   );
 
   // Limpieza: la base queda como estaba antes de la prueba.

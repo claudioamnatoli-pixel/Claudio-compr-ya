@@ -53,6 +53,8 @@ const periodoDe = (fecha: Date) =>
 
 async function limpiar() {
   // El orden importa: primero lo que depende de otros registros.
+  await prisma.auditoria.deleteMany();
+  await prisma.sesion.deleteMany();
   await prisma.comision.deleteMany();
   await prisma.envio.deleteMany();
   await prisma.itemPedido.deleteMany();
@@ -699,6 +701,108 @@ async function main() {
     }
   }
 
+  // --- Registro de auditoría ------------------------------------------------
+  console.log('Creando registro de auditoría…');
+  const anotar = (datos: {
+    accion: string;
+    entidad: string;
+    entidadId?: string | null;
+    resumen: string;
+    cambios?: Record<string, { antes: unknown; despues: unknown }> | null;
+    actorId?: string | null;
+    actor: string;
+    dias: number;
+  }) =>
+    prisma.auditoria.create({
+      data: {
+        accion: datos.accion,
+        entidad: datos.entidad,
+        entidadId: datos.entidadId ?? null,
+        resumen: datos.resumen,
+        cambios: datos.cambios ? JSON.stringify(datos.cambios) : null,
+        empleadoId: datos.actorId ?? null,
+        actor: datos.actor,
+        createdAt: haceDias(datos.dias, entre(9, 18)),
+      },
+    });
+
+  const audio = productos[0];
+  await anotar({
+    accion: 'empleado.crear',
+    entidad: 'Empleado',
+    entidadId: vendedores[3].id,
+    resumen: `Alta de ${vendedores[3].nombre} como vendedor`,
+    actorId: admin.id,
+    actor: admin.nombre,
+    dias: 45,
+  });
+  await anotar({
+    accion: 'empleado.acceso_otorgado',
+    entidad: 'Empleado',
+    entidadId: vendedores[3].id,
+    resumen: `Acceso otorgado a ${vendedores[3].nombre}`,
+    actorId: admin.id,
+    actor: admin.nombre,
+    dias: 45,
+  });
+  await anotar({
+    accion: 'producto.actualizar',
+    entidad: 'Producto',
+    entidadId: audio.id,
+    resumen: `Cambio en ${audio.nombre} (${audio.sku})`,
+    cambios: { precio: { antes: 230_000, despues: audio.precio } },
+    actorId: admin.id,
+    actor: admin.nombre,
+    dias: 28,
+  });
+  await anotar({
+    accion: 'empleado.actualizar',
+    entidad: 'Empleado',
+    entidadId: vendedores[0].id,
+    resumen: `Cambio de condiciones de ${vendedores[0].nombre}`,
+    cambios: {
+      salarioBase: { antes: 2_900_000, despues: vendedores[0].salarioBase },
+      tasaComision: { antes: 0.06, despues: vendedores[0].tasaComision },
+    },
+    actorId: admin.id,
+    actor: admin.nombre,
+    dias: 21,
+  });
+  await anotar({
+    accion: 'comision.pagar',
+    entidad: 'Empleado',
+    entidadId: vendedores[0].id,
+    resumen: `Pago de comisiones a ${vendedores[0].nombre} del mes pasado`,
+    actorId: admin.id,
+    actor: admin.nombre,
+    dias: 12,
+  });
+  await anotar({
+    accion: 'sesion.fallida',
+    entidad: 'Empleado',
+    resumen: 'Intento de acceso con un correo no registrado: contacto@compr-ya.com.py',
+    actor: 'contacto@compr-ya.com.py',
+    dias: 6,
+  });
+  await anotar({
+    accion: 'password.cambiada',
+    entidad: 'Empleado',
+    entidadId: lidiaAlfa.id,
+    resumen: `${lidiaAlfa.nombre} cambió su contraseña`,
+    actorId: lidiaAlfa.id,
+    actor: lidiaAlfa.nombre,
+    dias: 4,
+  });
+  await anotar({
+    accion: 'sesion.iniciada',
+    entidad: 'Empleado',
+    entidadId: admin.id,
+    resumen: `${admin.nombre} inició sesión`,
+    actorId: admin.id,
+    actor: admin.nombre,
+    dias: 1,
+  });
+
   const resumen = {
     equipos: await prisma.equipo.count(),
     empleados: await prisma.empleado.count(),
@@ -710,6 +814,7 @@ async function main() {
     envios: await prisma.envio.count(),
     comisiones: await prisma.comision.count(),
     asistencias: await prisma.asistencia.count(),
+    auditoria: await prisma.auditoria.count(),
   };
   console.log('Datos de ejemplo creados:', resumen);
   console.log(

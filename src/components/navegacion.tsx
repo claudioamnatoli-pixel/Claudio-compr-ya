@@ -22,6 +22,7 @@ const SECCIONES: Seccion[] = [
   { href: '/equipo', etiqueta: 'Equipo', permiso: 'equipo.ver', icono: 'M8 11a3 3 0 100-6 3 3 0 000 6zM2 20a6 6 0 0112 0M16 11a3 3 0 100-6M22 20a6 6 0 00-4-5.6' },
   { href: '/campanas', etiqueta: 'Campañas', permiso: 'campanas.ver', icono: 'M3 10v4h4l5 4V6L7 10H3zM17 8a5 5 0 010 8' },
   { href: '/plantillas', etiqueta: 'Plantillas', permiso: 'plantillas.ver', icono: 'M4 4h16v12H8l-4 4V4zM8 9h8M8 12h5' },
+  { href: '/auditoria', etiqueta: 'Auditoría', permiso: 'auditoria.ver', icono: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 004 0M9 12h6M9 16h4' },
 ];
 
 function esActiva(pathname: string, href: string) {

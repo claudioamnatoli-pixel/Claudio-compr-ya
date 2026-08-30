@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
+import { auditar, compararCampos } from '@/lib/auditoria';
 import { TIPOS_MOVIMIENTO } from '@/lib/dominio';
 import { aplicarMovimiento, StockInsuficiente } from '@/lib/inventario';
 import { autorizar } from '@/lib/guardias';
@@ -55,8 +56,16 @@ export async function crearProducto(
         tipo: 'ENTRADA',
         cantidad: stockInicial,
         motivo: 'Alta del producto',
+        empleadoId: guardia.usuario.id,
       });
     }
+    await auditar(tx, {
+      accion: 'producto.crear',
+      entidad: 'Producto',
+      entidadId: creado.id,
+      resumen: `Alta de ${creado.nombre} (${creado.sku})`,
+      actor: guardia.usuario,
+    });
     return creado;
   });
 
@@ -90,10 +99,37 @@ export async function actualizarProducto(
     return fallo('El precio de venta es menor que el costo: revisa las cifras.');
   }
 
-  await prisma.producto.update({ where: { id: productoId }, data: datos });
+  const actual = await prisma.producto.findUnique({ where: { id: productoId } });
+  if (!actual) return fallo('Ese producto ya no existe.');
+
+  // El precio y el costo mueven el margen de toda la operación: queda constancia
+  // de quién los cambió y desde qué valor.
+  const cambios = compararCampos(actual, datos, [
+    'nombre',
+    'categoria',
+    'costo',
+    'precio',
+    'stockMinimo',
+    'activo',
+  ]);
+
+  await prisma.$transaction(async (tx) => {
+    await tx.producto.update({ where: { id: productoId }, data: datos });
+    if (cambios) {
+      await auditar(tx, {
+        accion: 'producto.actualizar',
+        entidad: 'Producto',
+        entidadId: productoId,
+        resumen: `Cambio en ${actual.nombre} (${actual.sku})`,
+        cambios,
+        actor: guardia.usuario,
+      });
+    }
+  });
+
   revalidatePath(`/inventario/${productoId}`);
   revalidatePath('/inventario');
-  return exito('Producto actualizado.');
+  return exito(cambios ? 'Producto actualizado.' : 'No había nada que cambiar.');
 }
 
 const esquemaMovimiento = z.object({

@@ -4,7 +4,9 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { generarCodigoPedido } from '@/lib/codigos';
+import { auditar } from '@/lib/auditoria';
 import { ESTADOS_PEDIDO, METODOS_PAGO } from '@/lib/dominio';
+import { formatearDinero } from '@/lib/formato';
 import { puede } from '@/lib/permisos';
 import { StockInsuficiente } from '@/lib/inventario';
 import { detallePedido, transicionarPedido, TransicionInvalida } from '@/lib/pedidos';
@@ -193,7 +195,19 @@ export async function cambiarEstadoPedido(
   if (pedido.estado === nuevoEstado) return exito('El pedido ya estaba en ese estado.');
 
   try {
-    await prisma.$transaction((tx) => transicionarPedido(tx, pedido, nuevoEstado));
+    await prisma.$transaction(async (tx) => {
+      await transicionarPedido(tx, pedido, nuevoEstado);
+      // Anular una venta hecha destruye ingresos y comisiones: queda registrado.
+      if (nuevoEstado === 'CANCELADO' || nuevoEstado === 'DEVUELTO') {
+        await auditar(tx, {
+          accion: 'pedido.anular',
+          entidad: 'Pedido',
+          entidadId: pedido.id,
+          resumen: `Pedido ${pedido.codigo} de ${formatearDinero(pedido.total)} marcado como ${ESTADOS_PEDIDO.etiqueta(nuevoEstado).toLowerCase()}`,
+          actor: guardia.usuario,
+        });
+      }
+    });
   } catch (error) {
     if (error instanceof TransicionInvalida || error instanceof StockInsuficiente) {
       return fallo(error.message);

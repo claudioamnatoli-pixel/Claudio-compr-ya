@@ -2,11 +2,16 @@ import 'server-only';
 import { createHmac, randomBytes } from 'node:crypto';
 import { cookies } from 'next/headers';
 import { cache } from 'react';
-import { hashearPassword, revisarPassword, verificarPassword } from './password';
+import {
+  generarPasswordProvisional,
+  hashearPassword,
+  revisarPassword,
+  verificarPassword,
+} from './password';
 import { prisma } from './prisma';
 
 // Se reexportan para que el resto del código tenga un único punto de entrada.
-export { hashearPassword, revisarPassword, verificarPassword };
+export { generarPasswordProvisional, hashearPassword, revisarPassword, verificarPassword };
 
 const NOMBRE_COOKIE = 'compr_ya_sesion';
 const DURACION_DIAS = 30;

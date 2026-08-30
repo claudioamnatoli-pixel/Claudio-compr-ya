@@ -27,6 +27,7 @@ cambia desde `.env` sin tocar código.
 | **Equipo** | Alta de personal, equipos con líder y meta, asistencia, ranking de venta y pago de comisiones. |
 | **Campañas** | Qué vivo o aviso trajo cada prospecto y cuánto dinero terminó generando. |
 | **Accesos** | Inicio de sesión con contraseña y permisos por rol: cada persona ve sólo lo suyo. |
+| **Auditoría** | Quién cambió un sueldo, un precio o una comisión, y quién intentó entrar sin conseguirlo. |
 
 ## Puesta en marcha
 
@@ -50,7 +51,7 @@ acceso lista las demás cuentas de ejemplo mientras estés en desarrollo.
 | `npm run build` / `npm start` | Compilar y servir en producción. |
 | `npm run db:reset` | Borrar la base y volver a sembrarla desde cero. |
 | `npm run db:studio` | Explorar los datos en una interfaz visual. |
-| `npm run verificar` | Prueba el pedido completo, el manejo del dinero, los permisos y las contraseñas. |
+| `npm run verificar` | Prueba el pedido completo, el dinero, los permisos, las contraseñas y la auditoría. |
 | `npm run typecheck` / `npm run lint` | Comprobaciones de tipos y estilo. |
 
 ## Configuración
@@ -74,8 +75,8 @@ ver en una lista y difícil de ver en una jerarquía.
 
 | Rol | Entra a | No puede |
 | --- | --- | --- |
-| **Administración** | Todo | — |
-| **Líder de equipo** | Panel, prospectos de todo el equipo, pedidos, inventario, logística, campañas, plantillas, comisiones de su gente | Dar de alta personal ni cambiar sueldos |
+| **Administración** | Todo, incluidos los accesos y la auditoría | — |
+| **Líder de equipo** | Panel, prospectos de todo el equipo, pedidos, inventario, logística, campañas, plantillas, comisiones de su gente | Dar de alta personal, cambiar sueldos, repartir contraseñas ni leer la auditoría |
 | **Vendedor** | Panel, **sus** prospectos y los que no tienen responsable, pedidos, catálogo, campañas y plantillas | Ver la nómina, los sueldos ni los prospectos de otros vendedores |
 | **Repartidor** | Logística y los datos de entrega de los pedidos | Todo lo demás |
 | **Almacén** | Inventario y consulta de pedidos | El panel de ventas y los prospectos |
@@ -84,20 +85,44 @@ Tres detalles que importan:
 
 - **El permiso se comprueba en el servidor, siempre.** El menú oculta lo que no
   corresponde, pero ocultar no protege: una petición se puede enviar a mano. Cada
-  página y **cada una de las 22 acciones** comprueban el permiso por su cuenta, y
-  `npm run verificar` falla si alguna acción nueva se queda sin guarda.
+  página y **cada una de las 24 acciones** comprueban el permiso por su cuenta, y
+  `npm run verificar` falla si alguna acción nueva se queda sin guarda —o si una
+  que toca dinero o accesos se queda sin dejar rastro en la auditoría.
 - **El recorte va en la consulta.** Un vendedor no ve los prospectos ajenos porque
   no se traen de la base, no porque se escondan al dibujar la página.
 - **La venta se atribuye a quien la hace.** Un vendedor no puede poner el pedido
   —ni la comisión— a nombre de otra persona.
 
-### Contraseñas
+### Contraseñas y alta de accesos
 
-Se guardan con `scrypt`, cada una con su propia sal, y se comparan en tiempo
-constante. La aplicación nunca guarda ni muestra la contraseña en claro. Al
-cambiarla se cierran las demás sesiones abiertas con esa cuenta. Administración
-puede dejar una contraseña provisional: quien entra con ella no llega a ninguna
-pantalla hasta cambiarla.
+Estar en la nómina y poder entrar al sistema son dos cosas distintas: alguien
+recién contratado existe en el sistema pero no tiene acceso hasta que
+administración se lo da, desde su ficha.
+
+Al dársela se genera una contraseña **provisional** pensada para dictarse por
+teléfono (`tevuna-8023`: sílabas y dígitos, sin las letras y cifras que se
+confunden al leerlas). Se muestra **una sola vez**, en pantalla, y hay que
+confirmar que se anotó antes de que la ficha se actualice — si desapareciera
+sola habría que generar otra. Quien entra con ella no llega a ninguna pantalla
+hasta cambiarla.
+
+Las contraseñas se guardan con `scrypt`, cada una con su propia sal, y se
+comparan en tiempo constante. Nunca se guardan ni se muestran en claro. Cambiar
+la contraseña, restablecerla, quitar el acceso o dar de baja a alguien cierra
+sus sesiones abiertas en el acto.
+
+### Registro de auditoría
+
+Todo lo que toca el dinero o el acceso deja rastro: quién subió un sueldo y
+desde cuánto, quién cambió un precio, quién pagó comisiones, quién dio o quitó
+un acceso, quién anuló un pedido y quién intentó entrar sin conseguirlo. Cada
+entrada guarda qué campos cambiaron, con el valor anterior y el nuevo.
+
+Sólo administración lo lee. No se registra todo a propósito: el movimiento de
+inventario y la conversación de WhatsApp ya llevan su propio historial, y
+duplicarlo sólo añadiría ruido donde hay que buscar. El registro se escribe
+dentro de la misma transacción que el cambio que describe, de modo que no puede
+quedar diciendo que pasó algo que no pasó.
 
 ## Cómo está armado
 
@@ -189,6 +214,7 @@ src/
   middleware.ts        Anota la ruta pedida para que el layout compruebe permisos
   lib/
     auth.ts            Sesiones y cookies
+    auditoria.ts       Registro de cambios y comparación de campos
     password.ts        Hash y verificación de contraseñas
     permisos.ts        Qué puede hacer cada rol
     guardias.ts        Guardas de páginas y de Server Actions
@@ -215,5 +241,5 @@ producción:
 - **Respaldos** de la base.
 - **Datos personales.** Guardas nombres, teléfonos y direcciones de clientes:
   revisá qué exige la normativa paraguaya de protección de datos personales.
-- **Registro de auditoría.** Hoy se sabe quién movió el inventario y quién escribió
-  cada mensaje, pero no queda rastro de quién cambió un sueldo o un precio.
+- **Bloqueo tras varios intentos fallidos.** Los intentos quedan registrados, pero
+  nada impide seguir probando contraseñas.

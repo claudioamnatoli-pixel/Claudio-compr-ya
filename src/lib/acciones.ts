@@ -6,10 +6,20 @@ import { FACTOR_MONEDA } from './config';
  * `useActionState` para mostrar el error sin recargar la página.
  */
 export type ResultadoAccion =
-  | { ok: true; mensaje?: string }
+  | {
+      ok: true;
+      mensaje?: string;
+      /// Datos que la pantalla necesita mostrar tras la acción, como una
+      /// contraseña provisional que sólo se enseña una vez.
+      datos?: Record<string, string>;
+    }
   | { ok: false; error: string };
 
-export const exito = (mensaje?: string): ResultadoAccion => ({ ok: true, mensaje });
+export const exito = (mensaje?: string, datos?: Record<string, string>): ResultadoAccion => ({
+  ok: true,
+  mensaje,
+  datos,
+});
 export const fallo = (error: string): ResultadoAccion => ({ ok: false, error });
 
 /**

@@ -10,6 +10,7 @@ import {
   usuarioActual,
   verificarPassword,
 } from '@/lib/auth';
+import { auditar } from '@/lib/auditoria';
 import { inicioDe } from '@/lib/permisos';
 import { prisma } from '@/lib/prisma';
 import { fallo, textoObligatorio, validar, type ResultadoAccion } from '@/lib/acciones';
@@ -42,9 +43,19 @@ export async function cambiarPassword(
     return fallo('La contraseña actual no es correcta.');
   }
 
-  await prisma.empleado.update({
-    where: { id: usuario.id },
-    data: { passwordHash: hashearPassword(nueva), debeCambiarPassword: false },
+  const hash = hashearPassword(nueva);
+  await prisma.$transaction(async (tx) => {
+    await tx.empleado.update({
+      where: { id: usuario.id },
+      data: { passwordHash: hash, debeCambiarPassword: false },
+    });
+    await auditar(tx, {
+      accion: 'password.cambiada',
+      entidad: 'Empleado',
+      entidadId: usuario.id,
+      resumen: `${usuario.nombre} cambió su contraseña`,
+      actor: usuario,
+    });
   });
 
   // Cambiar la contraseña cierra las demás sesiones: si alguien había entrado

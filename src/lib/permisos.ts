@@ -35,6 +35,9 @@ export const PERMISOS = [
   'equipo.verRemuneracion',
   /// Dar de alta, editar condiciones, pagar comisiones, crear equipos.
   'equipo.gestionar',
+  /// Dar o quitar acceso al sistema. Va aparte de gestionar personal porque
+  /// repartir contraseñas es más delicado que corregir un sueldo.
+  'acceso.gestionar',
   'asistencia.registrar',
 
   'campanas.ver',
@@ -42,6 +45,9 @@ export const PERMISOS = [
 
   'plantillas.ver',
   'plantillas.gestionar',
+
+  /// Leer el registro de auditoría.
+  'auditoria.ver',
 ] as const;
 
 export type Permiso = (typeof PERMISOS)[number];
@@ -145,6 +151,7 @@ const PERMISO_POR_RUTA: readonly (readonly [string, Permiso])[] = [
   ['/equipo', 'equipo.ver'],
   ['/campanas', 'campanas.ver'],
   ['/plantillas', 'plantillas.ver'],
+  ['/auditoria', 'auditoria.ver'],
 ];
 
 /** Devuelve el permiso que pide una ruta, o null si no exige ninguno. */

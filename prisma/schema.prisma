@@ -79,6 +79,7 @@ model Empleado {
   asistencias Asistencia[]
   comisiones  Comision[]
   sesiones    Sesion[]
+  auditoria   Auditoria[]
 
   @@index([rol])
   @@index([equipoId])
@@ -393,4 +394,37 @@ model Sesion {
 
   @@index([empleadoId])
   @@index([expiraAt])
+}
+
+// ---------------------------------------------------------------------------
+// Auditoría
+// ---------------------------------------------------------------------------
+
+model Auditoria {
+  id        String   @id @default(cuid())
+  /// Qué se hizo, en formato "entidad.verbo": empleado.actualizar, comision.pagar…
+  /// Los valores válidos están en ACCIONES_AUDITADAS (src/lib/auditoria.ts).
+  accion    String
+  /// Sobre qué se hizo. Permite ver el historial de un registro concreto.
+  entidad   String
+  entidadId String?
+  /// Frase legible, para poder leer el registro sin descifrar el JSON.
+  resumen   String
+  /// Campos que cambiaron, como JSON: {"salarioBase":{"antes":1,"despues":2}}.
+  /// Nulo cuando la acción no es una modificación.
+  cambios   String?
+  createdAt DateTime @default(now())
+
+  /// Quién lo hizo. Nulo cuando no había sesión (un intento de acceso fallido).
+  empleadoId String?
+  empleado   Empleado? @relation(fields: [empleadoId], references: [id], onDelete: SetNull)
+  /// Nombre de quien actuó, copiado en el momento. Se guarda aparte del vínculo
+  /// para que el registro siga siendo legible aunque la persona se elimine, y
+  /// para poder anotar un correo en un intento de acceso fallido.
+  actor      String
+
+  @@index([createdAt])
+  @@index([entidad, entidadId])
+  @@index([empleadoId])
+  @@index([accion])
 }
