@@ -31,8 +31,11 @@ cambia desde `.env` sin tocar código.
 
 ## Puesta en marcha
 
-Necesitas Node.js 20 o superior. No hace falta instalar ninguna base de datos:
-en desarrollo se usa SQLite, que es un solo archivo.
+Hay dos caminos: correrlo en tu computadora, o ponerlo en línea desde el
+navegador sin instalar nada (más abajo, en «Ponerlo en línea»).
+
+Para correrlo localmente necesitás Node.js 20 o superior. No hace falta instalar
+ninguna base de datos: en desarrollo se usa SQLite, que es un solo archivo.
 
 ```bash
 cp .env.example .env
@@ -50,6 +53,7 @@ acceso lista las demás cuentas de ejemplo mientras estés en desarrollo.
 | `npm run dev` | Servidor de desarrollo. |
 | `npm run build` / `npm start` | Compilar y servir en producción. |
 | `npm run db:reset` | Borrar la base y volver a sembrarla desde cero. |
+| `npm run db:seed -- --solo-si-vacia` | Sembrar sólo si la base está vacía; es lo que corre al desplegar. |
 | `npm run db:studio` | Explorar los datos en una interfaz visual. |
 | `npm run verificar` | Prueba el pedido completo, el dinero, los permisos, las contraseñas y la auditoría. |
 | `npm run typecheck` / `npm run lint` | Comprobaciones de tipos y estilo. |
@@ -65,6 +69,48 @@ Todo se ajusta desde `.env` (ver `.env.example`):
   números que se escriben como `0981…` se normalizan solos.
 - `NEXT_PUBLIC_MONEDA` y `NEXT_PUBLIC_LOCALE` — moneda y formato regional. Si cambias
   a una moneda con centavos, el sistema lo detecta y ajusta los importes solo.
+
+## Ponerlo en línea (sin instalar nada)
+
+El proyecto se despliega entero desde el navegador, sin terminal. Hacen falta
+dos cuentas gratuitas: una de hosting y una de base de datos.
+
+**1. Base de datos.** Creá una base PostgreSQL gratuita en
+[neon.com](https://neon.com) o [supabase.com](https://supabase.com) y copiá la
+cadena de conexión, que empieza por `postgresql://`.
+
+**2. Hosting.** Entrá a [vercel.com](https://vercel.com) con tu cuenta de
+GitHub, elegí *Add New → Project*, importá este repositorio y seleccioná la
+rama. Antes de darle a *Deploy*, agregá estas variables de entorno:
+
+| Variable | Valor |
+| --- | --- |
+| `DATABASE_URL` | La cadena de conexión del paso 1 |
+| `SESSION_SECRET` | Una frase larga y propia, mínimo 16 caracteres |
+| `NEXT_PUBLIC_MONEDA` | `PYG` |
+| `NEXT_PUBLIC_LOCALE` | `es-PY` |
+| `NEXT_PUBLIC_PREFIJO_PAIS` | `595` |
+| `NEXT_PUBLIC_NOMBRE_TIENDA` | El nombre de tu tienda |
+
+**3. Listo.** El primer despliegue crea las tablas y carga los datos de ejemplo
+por su cuenta; entrás con `claudia@compr-ya.com.py` y `demo1234`. Los
+despliegues siguientes **no** vuelven a sembrar: si la base ya tiene gente
+dentro, el sembrado se salta solo y no pisa nada.
+
+> Cambiá esa contraseña en cuanto entres, y borrá las cuentas de ejemplo antes
+> de usarlo con clientes reales.
+
+### Cómo elige el motor de base de datos
+
+No hay que tocar nada para pasar de local a servidor. `DATABASE_URL` decide:
+una que empieza por `file:` usa SQLite, una que empieza por `postgresql://` usa
+PostgreSQL. Como Prisma no acepta una variable en el campo `provider`, el
+esquema se ajusta al compilar (`scripts/preparar-esquema.mjs`), leyendo la URL
+del entorno o del `.env`.
+
+Por eso el código no lleva SQL escrito a mano: el único sitio donde hacía falta
+—comparar el stock contra su propio mínimo— se resolvió en TypeScript, que
+funciona igual en los dos motores.
 
 ## Quién ve qué
 
@@ -208,6 +254,7 @@ prisma/
   seed.ts              Datos de ejemplo
 scripts/
   verificar-flujo.ts   Prueba del ciclo de vida de un pedido
+  preparar-esquema.mjs Elige SQLite o PostgreSQL según la DATABASE_URL
 src/
   app/                 Rutas; cada módulo con su acciones.ts
   components/          Interfaz reutilizable
@@ -236,8 +283,8 @@ producción:
 - **Servir por HTTPS.** La cookie de sesión se marca como `secure` en producción,
   así que sin HTTPS nadie podrá iniciar sesión.
 - **Base de datos de verdad.** SQLite está bien para desarrollo; para varios
-  usuarios simultáneos toca PostgreSQL. Es cambiar el `provider` y la
-  `DATABASE_URL`.
+  usuarios simultáneos toca PostgreSQL. Basta con poner una `DATABASE_URL` de
+  PostgreSQL: el resto se ajusta solo.
 - **Respaldos** de la base.
 - **Datos personales.** Guardas nombres, teléfonos y direcciones de clientes:
   revisá qué exige la normativa paraguaya de protección de datos personales.

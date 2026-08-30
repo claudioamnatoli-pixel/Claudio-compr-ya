@@ -74,6 +74,19 @@ async function limpiar() {
 }
 
 async function main() {
+  // En un despliegue el sembrado corre dentro de la compilación, donde no hay
+  // terminal para lanzarlo a mano. Con esta bandera sólo actúa sobre una base
+  // vacía, de modo que el primer despliegue queda con datos de ejemplo y los
+  // siguientes no pisan nada de lo que se haya trabajado encima.
+  if (process.argv.includes('--solo-si-vacia')) {
+    const yaHayDatos = await prisma.empleado.count();
+    if (yaHayDatos > 0) {
+      console.log(`La base ya tiene ${yaHayDatos} empleados: no se siembra nada.`);
+      return;
+    }
+    console.log('Base vacía: se cargan los datos de ejemplo.');
+  }
+
   console.log('Limpiando datos anteriores…');
   await limpiar();
 

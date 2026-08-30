@@ -37,9 +37,7 @@ export async function resumenDelNegocio() {
       prisma.lead.count({ where: { createdAt: { gte: desdeEsteMes } } }),
       prisma.lead.count({ where: { createdAt: { gte: desdeEsteMes }, estado: 'GANADO' } }),
       prisma.envio.count({ where: { estado: { in: ['POR_ASIGNAR', 'ASIGNADO', 'EN_RUTA'] } } }),
-      prisma.$queryRaw<{ total: bigint }[]>`
-        SELECT COUNT(*) AS total FROM Producto WHERE activo = 1 AND stock <= stockMinimo
-      `,
+      contarProductosEnAlerta(),
     ]);
 
   const ventasMes = esteMes._sum.total ?? 0;
@@ -56,7 +54,7 @@ export async function resumenDelNegocio() {
     leadsGanadosMes,
     conversion: leadsMes > 0 ? leadsGanadosMes / leadsMes : 0,
     entregasPendientes,
-    productosStockBajo: Number(stockBajo[0]?.total ?? 0),
+    productosStockBajo: stockBajo,
   };
 }
 
@@ -160,17 +158,33 @@ export async function rendimientoDeVendedores(periodo: string) {
     .sort((a, b) => b.ventas - a.ventas);
 }
 
-/** Productos que ya tocaron su umbral mínimo. */
+/**
+ * Productos que ya tocaron su umbral mínimo.
+ *
+ * El umbral es una columna, no un número fijo, y comparar dos columnas entre sí
+ * obligaría a escribir SQL a mano —que además cambia de dialecto entre SQLite y
+ * PostgreSQL—. Como el catálogo de una tienda se cuenta por decenas o cientos,
+ * sale más barato y más portable traer los activos y filtrarlos aquí.
+ */
+async function productosEnAlerta() {
+  const activos = await prisma.producto.findMany({
+    where: { activo: true },
+    select: { id: true, sku: true, nombre: true, stock: true, stockMinimo: true },
+  });
+  return activos
+    .filter((producto) => producto.stock <= producto.stockMinimo)
+    .sort(
+      (a, b) =>
+        a.stock - a.stockMinimo - (b.stock - b.stockMinimo) || a.stock - b.stock,
+    );
+}
+
+async function contarProductosEnAlerta() {
+  return (await productosEnAlerta()).length;
+}
+
 export async function productosConStockBajo(limite = 8) {
-  return prisma.$queryRaw<
-    { id: string; sku: string; nombre: string; stock: number; stockMinimo: number }[]
-  >`
-    SELECT id, sku, nombre, stock, stockMinimo
-    FROM Producto
-    WHERE activo = 1 AND stock <= stockMinimo
-    ORDER BY (stock - stockMinimo) ASC, stock ASC
-    LIMIT ${limite}
-  `;
+  return (await productosEnAlerta()).slice(0, limite);
 }
 
 /** Productos más vendidos, por unidades, en pedidos que cuentan como venta. */
