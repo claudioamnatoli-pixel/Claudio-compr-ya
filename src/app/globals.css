@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-slate-50 text-slate-800 antialiased;
+  }
+}
+
+@layer components {
+  .campo {
+    @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm
+           text-slate-900 shadow-sm outline-none transition
+           placeholder:text-slate-400
+           focus:border-marca-500 focus:ring-2 focus:ring-marca-500/20
+           disabled:cursor-not-allowed disabled:bg-slate-100;
+  }
+  .etiqueta-campo {
+    @apply mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500;
+  }
+  .boton {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2
+           text-sm font-medium transition disabled:cursor-not-allowed
+           disabled:opacity-60;
+  }
+  .boton-primario {
+    @apply boton bg-marca-600 text-white shadow-sm hover:bg-marca-700;
+  }
+  .boton-secundario {
+    @apply boton border border-slate-300 bg-white text-slate-700 shadow-sm hover:bg-slate-50;
+  }
+  .boton-peligro {
+    @apply boton border border-red-200 bg-white text-red-700 shadow-sm hover:bg-red-50;
+  }
+  .boton-whatsapp {
+    @apply boton bg-[#25D366] text-white shadow-sm hover:bg-[#1da851];
+  }
+}

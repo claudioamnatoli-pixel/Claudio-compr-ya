@@ -1,0 +1,365 @@
+// Esquema de datos de Compr-Ya.
+//
+// Convención importante: TODO valor monetario se guarda como entero en la
+// unidad mínima de la moneda (centavos). Así se evitan los errores de redondeo
+// de los números decimales. Para mostrarlo en pantalla se usa
+// `formatearDinero()` de `src/lib/formato.ts`.
+//
+// SQLite no soporta enums, por lo que los campos de tipo "estado" son String.
+// Los valores válidos y sus etiquetas viven en `src/lib/dominio.ts`, que es la
+// única fuente de verdad para la interfaz.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Recursos humanos y estructura de venta
+// ---------------------------------------------------------------------------
+
+model Equipo {
+  id          String   @id @default(cuid())
+  nombre      String   @unique
+  descripcion String?
+  /// Meta de ventas mensual del equipo, en centavos.
+  metaMensual Int      @default(0)
+  activo      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  liderId String?   @unique
+  lider   Empleado? @relation("LiderDeEquipo", fields: [liderId], references: [id], onDelete: SetNull)
+
+  miembros Empleado[] @relation("MiembroDeEquipo")
+}
+
+model Empleado {
+  id           String    @id @default(cuid())
+  nombre       String
+  email        String    @unique
+  telefono     String
+  /// Ver ROLES en src/lib/dominio.ts (ADMIN, LIDER, VENDEDOR, REPARTIDOR, ALMACEN).
+  rol          String
+  activo       Boolean   @default(true)
+  fechaIngreso DateTime  @default(now())
+  fechaBaja    DateTime?
+  /// Sueldo base mensual, en centavos.
+  salarioBase  Int       @default(0)
+  /// Fracción de comisión sobre la venta. 0.08 = 8 %.
+  tasaComision Float     @default(0)
+  /// Meta de ventas mensual individual, en centavos.
+  metaMensual  Int       @default(0)
+  notas        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  equipoId       String?
+  equipo         Equipo? @relation("MiembroDeEquipo", fields: [equipoId], references: [id], onDelete: SetNull)
+  /// Equipo que esta persona lidera (si aplica).
+  equipoLiderado Equipo? @relation("LiderDeEquipo")
+
+  leads       Lead[]
+  pedidos     Pedido[]
+  entregas    Envio[]
+  mensajes    MensajeWhatsApp[]
+  movimientos MovimientoInventario[]
+  asistencias Asistencia[]
+  comisiones  Comision[]
+
+  @@index([rol])
+  @@index([equipoId])
+}
+
+model Asistencia {
+  id      String    @id @default(cuid())
+  fecha   DateTime
+  entrada DateTime?
+  salida  DateTime?
+  /// Ver ESTADOS_ASISTENCIA: PRESENTE, TARDE, AUSENTE, PERMISO, DESCANSO.
+  estado  String
+  notas   String?
+
+  empleadoId String
+  empleado   Empleado @relation(fields: [empleadoId], references: [id], onDelete: Cascade)
+
+  @@unique([empleadoId, fecha])
+  @@index([fecha])
+}
+
+model Comision {
+  id         String    @id @default(cuid())
+  /// Monto sobre el que se calculó la comisión (subtotal del pedido), en centavos.
+  base       Int
+  /// Fracción aplicada en el momento del cálculo. Se congela para que un cambio
+  /// posterior en la tasa del vendedor no altere comisiones ya generadas.
+  porcentaje Float
+  /// Resultado en centavos.
+  monto      Int
+  /// Ver ESTADOS_COMISION: PENDIENTE, APROBADA, PAGADA, CANCELADA.
+  estado     String    @default("PENDIENTE")
+  /// Periodo contable en formato AAAA-MM.
+  periodo    String
+  createdAt  DateTime  @default(now())
+  pagadaAt   DateTime?
+
+  empleadoId String
+  empleado   Empleado @relation(fields: [empleadoId], references: [id], onDelete: Cascade)
+
+  pedidoId String @unique
+  pedido   Pedido @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+
+  @@index([periodo])
+  @@index([empleadoId, periodo])
+}
+
+// ---------------------------------------------------------------------------
+// Catálogo e inventario
+// ---------------------------------------------------------------------------
+
+model Producto {
+  id          String   @id @default(cuid())
+  sku         String   @unique
+  nombre      String
+  descripcion String?
+  categoria   String
+  /// Costo de adquisición, en centavos.
+  costo       Int
+  /// Precio de venta al público, en centavos.
+  precio      Int
+  stock       Int      @default(0)
+  /// Umbral a partir del cual el producto se marca como stock bajo.
+  stockMinimo Int      @default(5)
+  imagenUrl   String?
+  activo      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  movimientos      MovimientoInventario[]
+  items            ItemPedido[]
+  leadsInteresados Lead[]
+
+  @@index([categoria])
+}
+
+model MovimientoInventario {
+  id              String   @id @default(cuid())
+  /// Ver TIPOS_MOVIMIENTO: ENTRADA, SALIDA, AJUSTE, DEVOLUCION, MERMA.
+  tipo            String
+  /// Cantidad siempre positiva. El `tipo` determina el signo.
+  cantidad        Int
+  /// Stock que quedó tras aplicar el movimiento. Sirve de auditoría.
+  stockResultante Int
+  motivo          String?
+  /// Referencia libre: código de pedido, factura del proveedor, etc.
+  referencia      String?
+  createdAt       DateTime @default(now())
+
+  productoId String
+  producto   Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+
+  empleadoId String?
+  empleado   Empleado? @relation(fields: [empleadoId], references: [id], onDelete: SetNull)
+
+  @@index([productoId, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// TikTok: campañas, prospectos y conversaciones de WhatsApp
+// ---------------------------------------------------------------------------
+
+model Campana {
+  id          String    @id @default(cuid())
+  nombre      String
+  /// Ver TIPOS_CAMPANA: VIDEO, LIVE, ADS, PERFIL.
+  tipo        String
+  urlVideo    String?
+  hashtags    String?
+  /// Inversión publicitaria, en centavos.
+  presupuesto Int       @default(0)
+  fechaInicio DateTime  @default(now())
+  fechaFin    DateTime?
+  activa      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+
+  leads Lead[]
+}
+
+model Lead {
+  id               String    @id @default(cuid())
+  codigo           String    @unique
+  nombre           String
+  telefono         String
+  ciudad           String?
+  /// Ver ORIGENES_LEAD: TIKTOK_VIDEO, TIKTOK_LIVE, TIKTOK_ADS, PERFIL, REFERIDO, OTRO.
+  origen           String
+  /// Ver ESTADOS_LEAD: NUEVO, CONTACTADO, EN_CONVERSACION, COTIZADO, GANADO, PERDIDO.
+  estado           String    @default("NUEVO")
+  /// Motivo registrado cuando el estado es PERDIDO.
+  motivoPerdida    String?
+  notas            String?
+  ultimoContactoAt DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  campanaId String?
+  campana   Campana? @relation(fields: [campanaId], references: [id], onDelete: SetNull)
+
+  productoInteresId String?
+  productoInteres   Producto? @relation(fields: [productoInteresId], references: [id], onDelete: SetNull)
+
+  vendedorId String?
+  vendedor   Empleado? @relation(fields: [vendedorId], references: [id], onDelete: SetNull)
+
+  mensajes MensajeWhatsApp[]
+  pedidos  Pedido[]
+
+  @@index([estado])
+  @@index([vendedorId])
+  @@index([createdAt])
+}
+
+model PlantillaWhatsApp {
+  id        String   @id @default(cuid())
+  nombre    String   @unique
+  /// Etapa del embudo en la que se sugiere usarla. Coincide con ESTADOS_LEAD.
+  etapa     String
+  /// Texto con variables entre llaves dobles: {{cliente}}, {{producto}}, {{precio}}...
+  cuerpo    String
+  activa    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  mensajes MensajeWhatsApp[]
+}
+
+model MensajeWhatsApp {
+  id        String   @id @default(cuid())
+  /// SALIENTE (de la tienda al cliente) o ENTRANTE (respuesta del cliente).
+  direccion String
+  cuerpo    String
+  createdAt DateTime @default(now())
+
+  leadId String
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  plantillaId String?
+  plantilla   PlantillaWhatsApp? @relation(fields: [plantillaId], references: [id], onDelete: SetNull)
+
+  empleadoId String?
+  empleado   Empleado? @relation(fields: [empleadoId], references: [id], onDelete: SetNull)
+
+  @@index([leadId, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Pedidos, envíos y zonas de reparto
+// ---------------------------------------------------------------------------
+
+model Zona {
+  id             String  @id @default(cuid())
+  nombre         String  @unique
+  ciudad         String
+  /// Tarifa de envío que se cobra al cliente, en centavos.
+  costoEnvio     Int
+  /// Tiempo de entrega prometido, en horas.
+  horasEstimadas Int     @default(48)
+  activa         Boolean @default(true)
+
+  envios Envio[]
+}
+
+model Pedido {
+  id     String @id @default(cuid())
+  codigo String @unique
+
+  clienteNombre String
+  telefono      String
+  direccion     String
+  ciudad        String
+  /// Referencia de ubicación: "portón verde", "frente a la farmacia"...
+  referencia    String?
+
+  /// Ver ESTADOS_PEDIDO: PENDIENTE, CONFIRMADO, PREPARANDO, ENVIADO, ENTREGADO,
+  /// CANCELADO, DEVUELTO.
+  estado     String @default("PENDIENTE")
+  /// Ver METODOS_PAGO: CONTRA_ENTREGA, TRANSFERENCIA, TARJETA.
+  metodoPago String @default("CONTRA_ENTREGA")
+
+  /// Todos en centavos.
+  subtotal   Int @default(0)
+  costoEnvio Int @default(0)
+  descuento  Int @default(0)
+  total      Int @default(0)
+
+  notas        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  confirmadoAt DateTime?
+  cerradoAt    DateTime?
+
+  leadId String?
+  lead   Lead?   @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
+  vendedorId String?
+  vendedor   Empleado? @relation(fields: [vendedorId], references: [id], onDelete: SetNull)
+
+  items    ItemPedido[]
+  envio    Envio?
+  comision Comision?
+
+  @@index([estado])
+  @@index([createdAt])
+  @@index([vendedorId])
+}
+
+model ItemPedido {
+  id             String @id @default(cuid())
+  cantidad       Int
+  /// Precio congelado en el momento de la venta, en centavos. No se lee del
+  /// producto para que un cambio de precio no altere pedidos históricos.
+  precioUnitario Int
+  /// cantidad * precioUnitario, en centavos.
+  subtotal       Int
+
+  pedidoId String
+  pedido   Pedido @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+
+  productoId String
+  producto   Producto @relation(fields: [productoId], references: [id], onDelete: Restrict)
+
+  @@unique([pedidoId, productoId])
+}
+
+model Envio {
+  id              String    @id @default(cuid())
+  /// Ver ESTADOS_ENVIO: POR_ASIGNAR, ASIGNADO, EN_RUTA, ENTREGADO, FALLIDO,
+  /// REPROGRAMADO, DEVUELTO.
+  estado          String    @default("POR_ASIGNAR")
+  guia            String?
+  fechaProgramada DateTime?
+  fechaEntrega    DateTime?
+  /// Número de intentos de entrega realizados.
+  intentos        Int       @default(0)
+  /// Lo que costó realmente la entrega (gasolina, mensajería), en centavos.
+  costoReal       Int?
+  /// Efectivo cobrado al cliente en entregas contra entrega, en centavos.
+  montoCobrado    Int?
+  observaciones   String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  pedidoId String @unique
+  pedido   Pedido @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+
+  zonaId String?
+  zona   Zona?   @relation(fields: [zonaId], references: [id], onDelete: SetNull)
+
+  repartidorId String?
+  repartidor   Empleado? @relation(fields: [repartidorId], references: [id], onDelete: SetNull)
+
+  @@index([estado])
+  @@index([repartidorId])
+}
