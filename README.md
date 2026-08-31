@@ -51,6 +51,10 @@ Entrá con `claudia@compr-ya.com.py` y la contraseña `demo1234`.
 Si la pestaña no se abre sola, buscá el panel **Ports** y hacé clic en el ícono
 del globo, en el puerto 3000.
 
+**Para saber si un entorno tiene el código actual:** la pantalla de acceso
+muestra la versión bajo el nombre de la tienda. Si no aparece ninguna versión,
+ese entorno está corriendo código anterior y hay que crear uno nuevo.
+
 La configuración está en `.devcontainer/devcontainer.json`. Los codespaces se
 suspenden solos cuando no se usan; volver a abrirlo retoma donde quedó.
 
@@ -253,7 +257,12 @@ contradecirse.
 la venta en lugar de leerlo del producto, para que un cambio de tarifa no reescriba
 el histórico.
 
-**Los Server Actions vienen con una defensa que hay que abrirle paso.** Next
+**Los Server Actions vienen con una defensa que hay que abrirle paso.** Va
+resuelto por partida doble —los dominios autorizados en `next.config.mjs` y el
+alineado de cabeceras en el middleware—, porque cada uno cubre al otro si
+cambia el comportamiento de Next o los encabezados del proxy. Comprobado que
+cualquiera de los dos basta por sí solo, y que ninguno deja pasar un origen
+ajeno. Next
 rechaza una acción cuando el dominio desde el que se envía no coincide con el
 del servidor: eso impide que otro sitio dispare acciones en tu nombre. Detrás de
 un proxy —Codespaces sirve la aplicación en `*.app.github.dev` mientras el

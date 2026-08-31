@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation';
 import { Campo, Formulario } from '@/components/formulario';
-import { CONFIG } from '@/lib/config';
+import { CONFIG, VERSION } from '@/lib/config';
 import { prisma } from '@/lib/prisma';
 import { destinoSiYaEntro, iniciarSesionAccion } from './acciones';
+import { PanelBaseVacia } from './panel-base-vacia';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Entrar' };
@@ -12,8 +13,12 @@ export default async function LoginPage() {
   const destino = await destinoSiYaEntro();
   if (destino) redirect(destino);
 
-  // La base recién sembrada trae cuentas de ejemplo; se muestran para que quien
-  // acaba de instalar el proyecto pueda entrar sin adivinar.
+  // Si no hay ninguna cuenta, el formulario sólo puede responder «incorrectos»,
+  // que no explica nada. Se detecta antes y se ofrece cargar los ejemplos.
+  const cuentas = await prisma.empleado.count();
+  const baseVacia = cuentas === 0;
+
+  // Las cuentas de ejemplo se muestran para poder entrar sin adivinar.
   const hayDemostracion =
     process.env.NODE_ENV !== 'production' &&
     (await prisma.empleado.count({ where: { email: { endsWith: '@compr-ya.com.py' } } })) > 0;
@@ -29,7 +34,10 @@ export default async function LoginPage() {
             {CONFIG.nombreTienda}
           </h1>
           <p className="mt-1 text-sm text-slate-500">Entra con tu cuenta de trabajo</p>
+          <p className="mt-1 font-mono text-[11px] text-slate-400">versión {VERSION}</p>
         </div>
+
+        {baseVacia ? <PanelBaseVacia /> : null}
 
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <Formulario accion={iniciarSesionAccion} textoBoton="Entrar" textoEnviando="Entrando…">
