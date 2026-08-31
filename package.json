@@ -3,19 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "empezar": "npm run preparar && npm run dev",
+    "preparar": "node scripts/preparar.mjs",
     "dev": "next dev",
     "build": "npm run db:preparar && tsx prisma/seed.ts --solo-si-vacia && next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "verificar": "tsx scripts/verificar-flujo.ts",
     "db:esquema": "node scripts/preparar-esquema.mjs",
     "db:preparar": "npm run db:esquema && prisma generate && prisma db push --skip-generate",
     "db:push": "npm run db:esquema && prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "rm -f prisma/dev.db && npm run db:preparar && npm run db:seed",
-    "db:studio": "prisma studio",
-    "setup": "npm install && npm run db:preparar && npm run db:seed",
-    "verificar": "tsx scripts/verificar-flujo.ts"
+    "db:studio": "prisma studio"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",

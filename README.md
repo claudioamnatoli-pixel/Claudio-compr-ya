@@ -29,51 +29,87 @@ cambia desde `.env` sin tocar código.
 | **Accesos** | Inicio de sesión con contraseña y permisos por rol: cada persona ve sólo lo suyo. |
 | **Auditoría** | Quién cambió un sueldo, un precio o una comisión, y quién intentó entrar sin conseguirlo. |
 
-## Puesta en marcha
+## Cómo hacerlo funcionar
 
-Hay dos caminos: correrlo en tu computadora, o ponerlo en línea desde el
-navegador sin instalar nada (más abajo, en «Ponerlo en línea»).
+Tres caminos, del que menos pide al que más. Todos terminan en el mismo
+programa, con los mismos datos de ejemplo.
 
-Para correrlo localmente necesitás Node.js 20 o superior. No hace falta instalar
-ninguna base de datos: en desarrollo se usa SQLite, que es un solo archivo.
+### 1. En el navegador, sin instalar nada (recomendado)
+
+GitHub puede correr el proyecto por vos. No hace falta instalar programas ni
+crear cuentas nuevas: alcanza con la de GitHub que ya usás para este
+repositorio.
+
+1. Entrá al repositorio en GitHub y elegí la rama del proyecto.
+2. Botón verde **Code** → pestaña **Codespaces** → **Create codespace**.
+3. Esperá unos minutos. Se instala todo, se crea la base y se cargan los datos
+   de ejemplo por su cuenta; después arranca el servidor y se abre la vista
+   previa.
+4. Entrá con `claudia@compr-ya.com.py` y la contraseña `demo1234`.
+
+Si la vista previa no se abre sola, buscá la pestaña **Ports** y hacé clic en el
+ícono del globo, en el puerto 3000.
+
+La configuración está en `.devcontainer/devcontainer.json`. Los codespaces se
+suspenden solos cuando no se usan; volver a abrirlo retoma donde quedó.
+
+### 2. En tu computadora, con un comando
+
+Necesitás [Node.js](https://nodejs.org) 18 o superior y Git.
 
 ```bash
-cp .env.example .env
-npm run setup     # instala, genera el cliente, crea la base y la llena de ejemplos
-npm run dev       # http://localhost:3000
+git clone https://github.com/claudioamnatoli-pixel/Claudio-compr-ya.git
+cd Claudio-compr-ya
+npm run empezar
 ```
 
-Entra con `claudia@compr-ya.com.py` y la contraseña `demo1234`. La pantalla de
-acceso lista las demás cuentas de ejemplo mientras estés en desarrollo.
+`npm run empezar` crea el archivo de configuración con una clave de sesión
+propia, instala las dependencias, prepara la base de datos, la llena de ejemplos
+y arranca el servidor en http://localhost:3000. Es seguro repetirlo: cada paso
+comprueba antes si hace falta, y nunca pisa datos existentes.
+
+Para apagarlo, `Ctrl+C`. Para volver a arrancarlo, `npm run dev`.
+
+### 3. En línea, con una dirección web propia
+
+Para que quede accesible desde cualquier teléfono hace falta un hosting y una
+base PostgreSQL: los pasos están en «Ponerlo en línea», más abajo.
 
 ### Comandos
 
 | Comando | Para qué |
 | --- | --- |
-| `npm run dev` | Servidor de desarrollo. |
+| `npm run empezar` | Preparar todo y arrancar. Es lo único que hace falta la primera vez. |
+| `npm run dev` | Arrancar, cuando ya está preparado. |
+| `npm run preparar` | Sólo preparar, sin arrancar. Es lo que corre Codespaces al crearse. |
 | `npm run build` / `npm start` | Compilar y servir en producción. |
 | `npm run db:reset` | Borrar la base y volver a sembrarla desde cero. |
 | `npm run db:seed -- --solo-si-vacia` | Sembrar sólo si la base está vacía; es lo que corre al desplegar. |
 | `npm run db:studio` | Explorar los datos en una interfaz visual. |
-| `npm run verificar` | Prueba el pedido completo, el dinero, los permisos, las contraseñas y la auditoría. |
+| `npm run verificar` | Probar el pedido completo, el dinero, los permisos, las contraseñas y la auditoría. |
 | `npm run typecheck` / `npm run lint` | Comprobaciones de tipos y estilo. |
 
 ## Configuración
 
-Todo se ajusta desde `.env` (ver `.env.example`):
+Todo se ajusta desde `.env`, que `npm run empezar` crea por vos a partir de
+`.env.example`:
 
-- `SESSION_SECRET` — clave con la que se firman las sesiones. **En producción hay
-  que poner una propia**: `openssl rand -base64 32`.
+- `SESSION_SECRET` — clave con la que se firman las sesiones. Se genera una propia
+  al preparar el proyecto; en un servidor, poné otra distinta.
 - `NEXT_PUBLIC_NOMBRE_TIENDA` — nombre que aparece en la interfaz y en las plantillas.
 - `NEXT_PUBLIC_PREFIJO_PAIS` — prefijo telefónico sin `+`. Paraguay es `595`; los
   números que se escriben como `0981…` se normalizan solos.
-- `NEXT_PUBLIC_MONEDA` y `NEXT_PUBLIC_LOCALE` — moneda y formato regional. Si cambias
+- `NEXT_PUBLIC_MONEDA` y `NEXT_PUBLIC_LOCALE` — moneda y formato regional. Si cambiás
   a una moneda con centavos, el sistema lo detecta y ajusta los importes solo.
 
-## Ponerlo en línea (sin instalar nada)
+## Ponerlo en línea
 
-El proyecto se despliega entero desde el navegador, sin terminal. Hacen falta
-dos cuentas gratuitas: una de hosting y una de base de datos.
+Para que el programa tenga una dirección web propia, accesible desde cualquier
+teléfono. Se hace entero desde el navegador, sin terminal, pero hacen falta dos
+cuentas gratuitas: una de hosting y una de base de datos.
+
+> Si el registro en alguno de estos servicios no te deja avanzar, usá el camino
+> de Codespaces de más arriba: corre el mismo programa, sin cuentas nuevas.
 
 **1. Base de datos.** Creá una base PostgreSQL gratuita en
 [neon.com](https://neon.com) o [supabase.com](https://supabase.com) y copiá la
@@ -252,7 +288,10 @@ para colgar el identificador real de la campaña o del video.
 prisma/
   schema.prisma        Modelo de datos
   seed.ts              Datos de ejemplo
+.devcontainer/
+  devcontainer.json    Hace que GitHub Codespaces lo arranque solo
 scripts/
+  preparar.mjs         Deja el proyecto listo con un solo comando
   verificar-flujo.ts   Prueba del ciclo de vida de un pedido
   preparar-esquema.mjs Elige SQLite o PostgreSQL según la DATABASE_URL
 src/
