@@ -53,6 +53,11 @@ Si la vista previa no se abre sola, buscá la pestaña **Ports** y hacé clic en
 La configuración está en `.devcontainer/devcontainer.json`. Los codespaces se
 suspenden solos cuando no se usan; volver a abrirlo retoma donde quedó.
 
+**Si algo no anda:** en la terminal del codespace, `npm run preparar` deja todo
+listo de nuevo sin borrar nada, y `git pull` trae los últimos cambios (después
+hay que reiniciar el servidor con `Ctrl+C` y `npm run dev`, porque la
+configuración de Next no se recarga sola).
+
 ### 2. En tu computadora, con un comando
 
 Necesitás [Node.js](https://nodejs.org) 18 o superior y Git.
@@ -246,6 +251,15 @@ contradecirse.
 **El precio se congela en el pedido.** `ItemPedido` guarda el precio del momento de
 la venta en lugar de leerlo del producto, para que un cambio de tarifa no reescriba
 el histórico.
+
+**Los Server Actions vienen con una defensa que hay que abrirle paso.** Next
+rechaza una acción cuando el dominio desde el que se envía no coincide con el
+del servidor: eso impide que otro sitio dispare acciones en tu nombre. Detrás de
+un proxy —Codespaces sirve la aplicación en `*.app.github.dev` mientras el
+servidor se cree en `localhost`— la comprobación da un falso positivo y no deja
+ni iniciar sesión. En `next.config.mjs` se autorizan esos dominios concretos, y
+sólo esos; cualquier otro sigue bloqueado. Para otro proxy, se añade su dominio
+en `ORIGENES_PERMITIDOS`.
 
 **El permiso se comprueba antes de dibujar.** El layout del panel resuelve qué
 permiso pide la ruta y decide ahí mismo. Si se comprobara dentro de la página, la
