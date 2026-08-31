@@ -40,15 +40,16 @@ GitHub puede correr el proyecto por vos. No hace falta instalar programas ni
 crear cuentas nuevas: alcanza con la de GitHub que ya usás para este
 repositorio.
 
-1. Entrá al repositorio en GitHub y elegí la rama del proyecto.
-2. Botón verde **Code** → pestaña **Codespaces** → **Create codespace**.
-3. Esperá unos minutos. Se instala todo, se crea la base y se cargan los datos
-   de ejemplo por su cuenta; después arranca el servidor y se abre la vista
-   previa.
-4. Entrá con `claudia@compr-ya.com.py` y la contraseña `demo1234`.
+Abrí este enlace y pulsá el botón verde:
 
-Si la vista previa no se abre sola, buscá la pestaña **Ports** y hacé clic en el
-ícono del globo, en el puerto 3000.
+**https://codespaces.new/claudioamnatoli-pixel/Claudio-compr-ya/tree/claude/tiktok-ecommerce-program-5y1bcr**
+
+Se instala todo, se crea la base, se cargan los datos de ejemplo, arranca el
+servidor y se abre solo en una pestaña del navegador. No hay que escribir nada.
+Entrá con `claudia@compr-ya.com.py` y la contraseña `demo1234`.
+
+Si la pestaña no se abre sola, buscá el panel **Ports** y hacé clic en el ícono
+del globo, en el puerto 3000.
 
 La configuración está en `.devcontainer/devcontainer.json`. Los codespaces se
 suspenden solos cuando no se usan; volver a abrirlo retoma donde quedó.

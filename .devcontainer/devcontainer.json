@@ -2,19 +2,22 @@
   "name": "Compr-Ya",
   "image": "mcr.microsoft.com/devcontainers/javascript-node:1-20-bookworm",
 
-  // Se ejecuta una sola vez, al crear el entorno: instala todo, prepara la base
-  // de datos y la llena con los datos de ejemplo.
+  // Se ejecuta una sola vez, al crear el entorno.
   "postCreateCommand": "npm run preparar",
 
-  // Se ejecuta cada vez que se abre: levanta el servidor. GitHub abre solo la
-  // vista previa del puerto 3000 cuando está listo.
-  "postAttachCommand": "npm run dev",
+  // Se ejecuta cada vez que se abre. Usa `empezar` y no `dev` a propósito:
+  // vuelve a comprobar que todo esté en su sitio antes de arrancar, así que si
+  // la preparación inicial falló, al reabrir se arregla sola en lugar de dejar
+  // el servidor caído.
+  "postAttachCommand": "npm run empezar",
 
   "forwardPorts": [3000],
   "portsAttributes": {
     "3000": {
       "label": "Compr-Ya",
-      "onAutoForward": "openPreview"
+      // Abre una pestaña de verdad en el navegador, en lugar del visor
+      // incrustado del editor: no hay que ir a buscar el panel de puertos.
+      "onAutoForward": "openBrowser"
     }
   },
 
