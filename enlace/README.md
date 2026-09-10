@@ -47,12 +47,30 @@ Las mismas ocho pantallas y las mismas reglas que la aplicación grande:
 Sirve para probar el circuito y para vender desde el teléfono; para operar en
 serio con varias personas, el sistema grande.
 
+## Los dos modos, en el mismo archivo
+
+El archivo detecta solo dónde está corriendo:
+
+- **Abierto desde el artefacto** guarda en la base del artefacto, compartida:
+  lo que carga uno lo ve el otro.
+- **Abierto con doble clic**, sin el artefacto, arranca con la semilla que trae
+  embebida y guarda en el `localStorage` de esa computadora. Sirve para probar
+  y para vender desde un solo equipo; no se comparte con nadie.
+
+Si el navegador no deja guardar (ventana privada, permisos), lo dice en pantalla
+en lugar de fingir que guardó.
+
+**Mientras espera el permiso no muestra cifras en cero.** Un cero es una
+afirmación, y hasta que llegan los datos no se sabe: por eso hay una pantalla de
+carga. Sin eso, el programa parecía vacío cuando en realidad estaba esperando —
+fue exactamente el malentendido de «no tiene nada».
+
 ## Comprobarlo
 
-Dos baterías de navegador, **63 + 15 comprobaciones**:
+Dos baterías de navegador, **69 + 15 comprobaciones**:
 
 ```
-node enlace/probar.mjs           # circuito completo contra un almacenamiento simulado
+node enlace/probar.mjs           # circuito completo, copia suelta y espera del permiso
 node enlace/probar-semilla.mjs   # la página contra los datos realmente sembrados
 ```
 

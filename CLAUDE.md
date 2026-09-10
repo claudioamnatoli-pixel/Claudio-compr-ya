@@ -128,6 +128,18 @@ auditoría. Si una regla cambia acá, cambia también allá; si no puede repetir
 decirlo en `enlace/README.md` en vez de dejar que las dos versiones se
 contradigan en silencio.
 
+**El mismo archivo sirve en dos modos.** Con la capacidad `db` guarda en la base
+del artefacto; abierto con doble clic cae en `baseLocal()`, que respeta el mismo
+contrato y guarda en `localStorage`, arrancando con la semilla embebida en
+`#semillaInicial`. Así se puede mandar como archivo a quien no logra abrir un
+enlace.
+
+**Nunca mostrar cifras en cero mientras se espera el permiso.** El permiso se
+pide al arrancar (`claude.permissions.request(['db'])`) y hasta que llegan los
+datos se muestra la pantalla de carga. Antes se pintaban ceros y el programa
+parecía vacío estando bien: ese fue el malentendido de «no tiene nada», dos
+veces.
+
 `enlace/semilla.json` es un espejo de lo que hay cargado en el artefacto:
 `probar-semilla.mjs` comprueba la página contra esos datos, no contra datos
 inventados. Al sembrar documentos nuevos, actualizar el espejo.
@@ -143,12 +155,12 @@ Hay además dos baterías de navegador (Playwright) que cubren sesiones, roles,
 reparto de accesos y auditoría. Al día de hoy: **59** comprobaciones en el
 script y **29** en el navegador (14 + 15).
 
-La copia de un solo enlace tiene las suyas, **78** en total, y necesitan
+La copia de un solo enlace tiene las suyas, **84** en total, y necesitan
 Playwright instalado a mano (`npm i -D playwright`; no es dependencia del
 proyecto):
 
 ```
-node enlace/probar.mjs           # 63 · circuito completo, almacenamiento simulado
+node enlace/probar.mjs           # 69 · circuito, copia suelta y espera del permiso
 node enlace/probar-semilla.mjs   # 15 · la página contra los datos publicados
 ```
 

@@ -333,16 +333,55 @@ for (const tema of ['light', 'dark']) {
   await ctx.close();
 }
 
-// --- Sin almacenamiento -------------------------------------------------
+// --- Abierta como archivo suelto, sin la capacidad del artefacto --------
+// Es el caso de quien la baja y le da doble clic: tiene que traer datos y
+// tiene que guardar en su propia computadora.
 {
   const ctx = await nav.newContext({ viewport: { width: 390, height: 844 } });
   const p = await ctx.newPage();
   const errores = [];
   p.on('pageerror', (e) => errores.push(String(e)));
   await p.goto(ruta);
-  await p.waitForTimeout(600);
-  ok('sin capacidad de guardar, la página avisa en vez de fingir', (await p.textContent('#avisoConexion')).includes('no recuerda'));
-  ok('y aun así se dibuja sin romperse', errores.length === 0, errores[0] || '');
+  await p.waitForTimeout(900);
+
+  ok('sin la capacidad del artefacto, igual arranca', errores.length === 0, errores[0] || '');
+  ok('y no se queda en la pantalla de carga', await p.isHidden('#cargando'));
+  const hoy = await p.textContent('#v-hoy');
+  ok('trae los datos de ejemplo adentro del archivo', hoy.includes('Aviso pagado · creadoras'), hoy.replace(/\s+/g, ' ').slice(0, 70));
+
+  // Guarda de verdad: se crea algo y tiene que seguir ahí al recargar.
+  await p.click('[data-vista="mas"]');
+  await p.click('#menuMas [data-vista="campanas"]');
+  await p.click('#btnNuevaCampana');
+  await p.waitForSelector('#cNombre');
+  await p.fill('#cNombre', 'Vivo de prueba');
+  await p.click('[data-guarda-campana]');
+  await p.waitForTimeout(500);
+  await p.reload();
+  await p.waitForTimeout(900);
+  await p.click('[data-vista="mas"]');
+  await p.click('#menuMas [data-vista="campanas"]');
+  ok('lo que se carga sigue ahí después de cerrar y volver a abrir',
+    (await p.textContent('#listaCampanas')).includes('Vivo de prueba'));
+  ok('sin errores en la copia suelta', errores.length === 0, errores[0] || '');
+  await ctx.close();
+}
+
+// --- La capacidad tarda en contestar ------------------------------------
+// Mientras se espera el permiso no se pueden mostrar ceros: un cero es una
+// afirmación, y todavía no se sabe nada.
+{
+  const ctx = await nav.newContext({ viewport: { width: 390, height: 844 } });
+  const p = await ctx.newPage();
+  await p.addInitScript(() => {
+    window.claude = { use: () => new Promise(() => {}) };   // nunca contesta
+  });
+  await p.goto(ruta);
+  await p.waitForTimeout(1200);
+  ok('mientras espera el permiso, dice que está cargando', await p.isVisible('#cargando'));
+  const txt = await p.textContent('#cargando');
+  ok('y explica qué contestar si el navegador pregunta', txt.includes('guardar'));
+  ok('no muestra cifras en cero como si fueran datos', await p.isHidden('#todo'));
   await ctx.close();
 }
 

@@ -158,6 +158,13 @@
   .menu__item span { font-size: .79rem; color: var(--tenue); }
   .flecha { color: var(--tenue); }
 
+  .cargando { text-align: center; padding: 4rem 1rem; }
+  .cargando__giro { width: 2rem; height: 2rem; margin: 0 auto 1rem; border-radius: 50%; border: 3px solid var(--borde); border-top-color: var(--acento); animation: gira .9s linear infinite; }
+  @keyframes gira { to { transform: rotate(360deg); } }
+  .cargando__texto { font-weight: 600; }
+  .cargando__pie { margin-top: .4rem; font-size: .82rem; color: var(--tenue); }
+  @media (prefers-reduced-motion: reduce) { .cargando__giro { animation-duration: 3s; } }
+
   .brindis { position: fixed; left: 50%; transform: translateX(-50%); bottom: 5.4rem; z-index: 50; background: var(--tinta); color: var(--fondo); padding: .55rem 1rem; border-radius: 999px; font-size: .85rem; font-weight: 500; opacity: 0; pointer-events: none; transition: opacity .2s; max-width: 90vw; text-align: center; }
   .brindis.visible { opacity: 1; }
 
@@ -174,6 +181,13 @@
 <main class="marco">
   <div id="avisoConexion"></div>
 
+  <div id="cargando" class="cargando">
+    <div class="cargando__giro" aria-hidden="true"></div>
+    <p class="cargando__texto">Abriendo tus datos…</p>
+    <p class="cargando__pie">Si el navegador te pregunta si esta página puede guardar, decile que sí.</p>
+  </div>
+
+  <div id="todo" hidden>
   <section class="vista activa" id="v-hoy">
     <div class="encabezado"><h2>Hoy</h2><span class="conteo" id="hoyFecha"></span></div>
     <div class="rejilla" id="hoyDatos"></div>
@@ -236,6 +250,7 @@
     <div class="lista" id="listaPlantillas"></div>
     <button class="btn btn-primario btn-ancho" style="margin-top:1rem" id="btnNuevaPlantilla">+ Nueva plantilla</button>
   </section>
+  </div>
 </main>
 
 <nav class="barra"><div class="barra__interior" id="pestanas"></div></nav>
@@ -251,6 +266,397 @@
 </div>
 
 <div class="brindis" id="brindis"></div>
+
+<script type="application/json" id="semillaInicial">
+{
+ "productos": {
+  "aud-pro": {
+   "categoria": "Audio",
+   "nombre": "Auriculares inalámbricos Pro",
+   "precio": 250000,
+   "stock": 18,
+   "sku": "AUD-PRO",
+   "costo": 150000,
+   "minimo": 5,
+   "movimientos": []
+  },
+  "aud-mini": {
+   "categoria": "Audio",
+   "nombre": "Auriculares deportivos Mini",
+   "precio": 165000,
+   "stock": 24,
+   "sku": "AUD-MIN",
+   "costo": 95000,
+   "minimo": 6,
+   "movimientos": []
+  },
+  "parlante": {
+   "categoria": "Audio",
+   "nombre": "Parlante portátil Bass 20 W",
+   "precio": 350000,
+   "stock": 9,
+   "sku": "PAR-020",
+   "costo": 215000,
+   "minimo": 3,
+   "movimientos": []
+  },
+  "reloj-fit": {
+   "categoria": "Wearables",
+   "nombre": "Reloj inteligente Fit",
+   "precio": 420000,
+   "stock": 12,
+   "sku": "REL-FIT",
+   "costo": 260000,
+   "minimo": 4,
+   "movimientos": []
+  },
+  "aro-luz": {
+   "categoria": "Creadores",
+   "nombre": "Aro de luz 26 cm con trípode",
+   "precio": 275000,
+   "stock": 7,
+   "sku": "ARO-26",
+   "costo": 160000,
+   "minimo": 3,
+   "movimientos": []
+  },
+  "microfono": {
+   "categoria": "Creadores",
+   "nombre": "Micrófono de solapa inalámbrico",
+   "precio": 210000,
+   "stock": 15,
+   "sku": "MIC-SOL",
+   "costo": 120000,
+   "minimo": 4,
+   "movimientos": []
+  },
+  "termo": {
+   "categoria": "Hogar",
+   "nombre": "Termo para tereré con guampa",
+   "precio": 230000,
+   "stock": 21,
+   "sku": "TER-GUA",
+   "costo": 130000,
+   "minimo": 6,
+   "movimientos": []
+  },
+  "cargador": {
+   "categoria": "Accesorios",
+   "nombre": "Cargador rápido 65 W",
+   "precio": 190000,
+   "stock": 3,
+   "sku": "CAR-65W",
+   "costo": 110000,
+   "minimo": 5,
+   "movimientos": []
+  },
+  "lampara": {
+   "categoria": "Hogar",
+   "nombre": "Lámpara LED de escritorio",
+   "precio": 180000,
+   "stock": 11,
+   "sku": "LAM-LED",
+   "costo": 105000,
+   "minimo": 4,
+   "movimientos": []
+  },
+  "rizador": {
+   "categoria": "Belleza",
+   "nombre": "Rizador de cabello automático",
+   "precio": 380000,
+   "stock": 2,
+   "sku": "RIZ-AUT",
+   "costo": 235000,
+   "minimo": 3,
+   "movimientos": []
+  }
+ },
+ "prospectos": {
+  "l001": {
+   "ciudad": "Asunción",
+   "creado": "2026-09-09T18:20:00.000Z",
+   "estado": "NUEVO",
+   "nombre": "María Fernanda Duarte",
+   "notas": "Escribió en el vivo del viernes.",
+   "productoId": "aud-pro",
+   "telefono": "0981234567",
+   "campanaId": "c-vivo-viernes",
+   "vendedorId": "ana"
+  },
+  "l002": {
+   "ciudad": "San Lorenzo",
+   "creado": "2026-09-09T20:05:00.000Z",
+   "estado": "NUEVO",
+   "nombre": "José Luis Ramírez",
+   "notas": "Preguntó si hay envío el mismo día.",
+   "productoId": "reloj-fit",
+   "telefono": "0975112233",
+   "campanaId": "c-aviso-audio",
+   "vendedorId": "ana"
+  },
+  "l003": {
+   "ciudad": "Luque",
+   "creado": "2026-09-08T14:40:00.000Z",
+   "estado": "CONTACTADO",
+   "nombre": "Karla Giménez",
+   "notas": "",
+   "productoId": "termo",
+   "telefono": "0983445566",
+   "campanaId": "c-vivo-viernes",
+   "vendedorId": "lidia"
+  },
+  "l004": {
+   "ciudad": "Lambaré",
+   "creado": "2026-09-08T09:15:00.000Z",
+   "estado": "COTIZADO",
+   "nombre": "Andrés Ortiz",
+   "notas": "Quiere dos, pide descuento.",
+   "productoId": "parlante",
+   "telefono": "0971889900",
+   "campanaId": "c-aviso-audio",
+   "vendedorId": "ana"
+  },
+  "l005": {
+   "ciudad": "Fernando de la Mora",
+   "creado": "2026-09-06T11:00:00.000Z",
+   "estado": "GANADO",
+   "nombre": "Patricia Rojas",
+   "notas": "",
+   "productoId": "aro-luz",
+   "telefono": "0986223344",
+   "campanaId": "c-aviso-belleza",
+   "vendedorId": "ana"
+  },
+  "l006": {
+   "ciudad": "Capiatá",
+   "creado": "2026-09-05T16:30:00.000Z",
+   "estado": "PERDIDO",
+   "nombre": "Emiliano Vera",
+   "notas": "Le pareció caro.",
+   "productoId": "aud-mini",
+   "telefono": "0982556677",
+   "campanaId": "c-aviso-audio",
+   "vendedorId": "lidia"
+  },
+  "l007": {
+   "ciudad": "Ciudad del Este",
+   "creado": "2026-09-09T08:45:00.000Z",
+   "estado": "CONTACTADO",
+   "nombre": "Sofía Cabañas",
+   "notas": "Creadora de contenido, compra recurrente.",
+   "productoId": "microfono",
+   "telefono": "0994778899",
+   "campanaId": "c-aviso-belleza",
+   "vendedorId": "ana"
+  }
+ },
+ "pedidos": {
+  "ped1": {
+   "ciudad": "Fernando de la Mora",
+   "cliente": "Patricia Rojas",
+   "codigo": "CY-0001",
+   "creado": "2026-09-08T12:00:00.000Z",
+   "direccion": "Avda. Mariscal López 2450, Villa Morra",
+   "envio": 35000,
+   "estado": "ENVIADO",
+   "items": [
+    {
+     "cantidad": 1,
+     "nombre": "Aro de luz 26 cm con trípode",
+     "precio": 275000,
+     "productoId": "aro-luz"
+    }
+   ],
+   "prospectoId": "l005",
+   "stockDescontado": true,
+   "telefono": "0986223344",
+   "total": 310000,
+   "zona": "Gran Asunción",
+   "metodoPago": "CONTRA_ENTREGA",
+   "vendedorId": "ana"
+  },
+  "ped2": {
+   "ciudad": "Asunción",
+   "cliente": "Rodrigo Blanco",
+   "codigo": "CY-0002",
+   "creado": "2026-09-05T15:30:00.000Z",
+   "direccion": "Calle Palma 780, Centro",
+   "envio": 25000,
+   "estado": "ENTREGADO",
+   "items": [
+    {
+     "cantidad": 2,
+     "nombre": "Termo para tereré con guampa",
+     "precio": 230000,
+     "productoId": "termo"
+    }
+   ],
+   "stockDescontado": true,
+   "telefono": "0972334455",
+   "total": 485000,
+   "zona": "Asunción",
+   "metodoPago": "CONTRA_ENTREGA",
+   "vendedorId": "ana",
+   "entregadoAt": "2026-09-06T18:40:00.000Z",
+   "cobrado": 485000
+  },
+  "ped3": {
+   "ciudad": "Asunción",
+   "cliente": "Gabriela Núñez",
+   "codigo": "CY-0003",
+   "creado": "2026-09-09T10:20:00.000Z",
+   "direccion": "Avda. España 1120, Recoleta",
+   "envio": 25000,
+   "estado": "CONFIRMADO",
+   "items": [
+    {
+     "cantidad": 1,
+     "nombre": "Reloj inteligente Fit",
+     "precio": 420000,
+     "productoId": "reloj-fit"
+    }
+   ],
+   "stockDescontado": true,
+   "telefono": "0995667788",
+   "total": 445000,
+   "zona": "Asunción",
+   "metodoPago": "TRANSFERENCIA",
+   "vendedorId": "lidia"
+  },
+  "ped4": {
+   "ciudad": "Encarnación",
+   "cliente": "Tomás Escobar",
+   "codigo": "CY-0004",
+   "creado": "2026-09-10T07:50:00.000Z",
+   "direccion": "Avda. Irrazabal 340",
+   "envio": 75000,
+   "estado": "PENDIENTE",
+   "items": [
+    {
+     "cantidad": 1,
+     "nombre": "Auriculares inalámbricos Pro",
+     "precio": 250000,
+     "productoId": "aud-pro"
+    }
+   ],
+   "stockDescontado": false,
+   "telefono": "0961445566",
+   "total": 325000,
+   "zona": "Interior (encomienda)",
+   "metodoPago": "CONTRA_ENTREGA",
+   "vendedorId": "ana"
+  }
+ },
+ "campanas": {
+  "c-vivo-viernes": {
+   "nombre": "Vivo del viernes · ofertas",
+   "tipo": "VIVO",
+   "fecha": "2026-09-05",
+   "inversion": 0,
+   "notas": "Una hora mostrando audio y hogar. Buen ritmo de comentarios.",
+   "creado": "2026-09-05T22:00:00.000Z"
+  },
+  "c-aviso-audio": {
+   "nombre": "Aviso pagado · audio",
+   "tipo": "AVISO",
+   "fecha": "2026-09-03",
+   "inversion": 250000,
+   "notas": "Segmentado a Gran Asunción, 18 a 35 años.",
+   "creado": "2026-09-03T09:00:00.000Z"
+  },
+  "c-aviso-belleza": {
+   "nombre": "Aviso pagado · creadoras",
+   "tipo": "AVISO",
+   "fecha": "2026-09-06",
+   "inversion": 180000,
+   "notas": "Aro de luz y micrófono. El que mejor cerró hasta ahora.",
+   "creado": "2026-09-06T09:00:00.000Z"
+  },
+  "c-video-terere": {
+   "nombre": "Video del termo",
+   "tipo": "VIDEO",
+   "fecha": "2026-09-07",
+   "inversion": 0,
+   "notas": "Orgánico, sin plata puesta.",
+   "creado": "2026-09-07T19:00:00.000Z"
+  }
+ },
+ "equipo": {
+  "claudia": {
+   "nombre": "Claudia Notario",
+   "rol": "ADMIN",
+   "comision": 0,
+   "telefono": "0981000111",
+   "activo": true,
+   "ingreso": "2026-01-15T12:00:00.000Z"
+  },
+  "lidia": {
+   "nombre": "Lidia Vázquez",
+   "rol": "LIDER",
+   "comision": 0.06,
+   "telefono": "0982000222",
+   "activo": true,
+   "ingreso": "2026-02-03T12:00:00.000Z"
+  },
+  "ana": {
+   "nombre": "Ana Giménez",
+   "rol": "VENDEDOR",
+   "comision": 0.1,
+   "telefono": "0983000333",
+   "activo": true,
+   "ingreso": "2026-03-11T12:00:00.000Z"
+  },
+  "marco": {
+   "nombre": "Marco Ruiz",
+   "rol": "REPARTIDOR",
+   "comision": 0,
+   "telefono": "0984000444",
+   "activo": true,
+   "ingreso": "2026-04-02T12:00:00.000Z"
+  },
+  "hugo": {
+   "nombre": "Hugo Benítez",
+   "rol": "ALMACEN",
+   "comision": 0,
+   "telefono": "0985000555",
+   "activo": true,
+   "ingreso": "2026-04-20T12:00:00.000Z"
+  }
+ },
+ "plantillas": {
+  "t-saludo": {
+   "nombre": "Primer saludo",
+   "etapa": "NUEVO",
+   "cuerpo": "¡Hola {{cliente}}! 👋 Te escribo de Compra Ya por tu consulta en TikTok. ¿Seguís interesada/o en {{producto}}?",
+   "creado": "2026-09-01T12:00:00.000Z"
+  },
+  "t-precio": {
+   "nombre": "Le paso el precio",
+   "etapa": "CONTACTADO",
+   "cuerpo": "{{cliente}}, te paso los datos: {{producto}} sale {{precio}}. Hacemos envío a {{ciudad}} y pagás cuando lo recibís, contra entrega. ¿Te lo aparto?",
+   "creado": "2026-09-01T12:00:00.000Z"
+  },
+  "t-empujon": {
+   "nombre": "Empujoncito",
+   "etapa": "COTIZADO",
+   "cuerpo": "Hola {{cliente}}, ¿pudiste verlo? Me queda poco stock de {{producto}} a {{precio}}. Si querés te lo reservo hasta mañana. 😊",
+   "creado": "2026-09-01T12:00:00.000Z"
+  },
+  "t-confirma": {
+   "nombre": "Confirmación de pedido",
+   "etapa": "GANADO",
+   "cuerpo": "¡Listo {{cliente}}! ✅ Tu pedido {{pedido}} quedó confirmado. Te aviso apenas salga a reparto. ¡Gracias por la compra!",
+   "creado": "2026-09-01T12:00:00.000Z"
+  },
+  "t-reenganche": {
+   "nombre": "Reenganche",
+   "etapa": "PERDIDO",
+   "cuerpo": "Hola {{cliente}}, ¿cómo andás? Volvió {{producto}} y esta semana está a {{precio}}. Si te sirve, avisame. 🙌",
+   "creado": "2026-09-01T12:00:00.000Z"
+  }
+ }
+}
+</script>
 
 <script>
 (function () {
@@ -1461,42 +1867,142 @@
     var total = COLECCIONES.reduce(function (s, c) { return s + datos[c].length; }, 0);
     if (total === 0) {
       avisa('<div class="aviso aviso-info">La base está vacía. Empezá cargando un producto desde <b>Más › Inventario</b>.</div>');
-    } else {
+    } else if (!base || !base.local) {
       avisa('');
     }
   }
 
-  async function conecta() {
-    var db = null;
-    try { db = await claude.use('db'); } catch (err) { db = null; }
+  // Guardado en la propia computadora, con el mismo contrato que la capacidad
+  // `db`: así el resto del programa no se entera de cuál de los dos está
+  // usando. Es lo que permite que este mismo archivo sirva abierto con doble
+  // clic, sin servidor y sin cuenta.
+  function baseLocal() {
+    var CLAVE = 'compra-ya-datos-v1';
+    var oyentes = {};
+    var tiendas = null;
 
-    if (!db) {
-      avisa('<div class="aviso aviso-alerta">Esta copia no puede guardar cambios: se ve, pero no recuerda. ' +
-            'Abrila desde el enlace original para que guarde.</div>');
-      return;
+    function arranca() {
+      var guardado = null;
+      try { guardado = JSON.parse(localStorage.getItem(CLAVE) || 'null'); } catch (err) { guardado = null; }
+      if (!guardado) {
+        var caja = document.getElementById('semillaInicial');
+        try { guardado = JSON.parse(caja ? caja.textContent : '{}'); } catch (err) { guardado = {}; }
+      }
+      tiendas = {};
+      COLECCIONES.forEach(function (n) { tiendas[n] = guardado[n] || {}; oyentes[n] = []; });
     }
-    base = db;
 
+    // Si el navegador no deja guardar (ventana privada, permisos), la página
+    // sigue andando en memoria; lo que no puede hacer es mentir y decir que
+    // guardó.
+    var puedeGuardar = true;
+    function persiste() {
+      if (!puedeGuardar) return;
+      try { localStorage.setItem(CLAVE, JSON.stringify(tiendas)); }
+      catch (err) {
+        puedeGuardar = false;
+        avisa('<div class="aviso aviso-alerta">Este navegador no deja guardar: los cambios duran ' +
+              'hasta que cierres la pestaña.</div>');
+      }
+    }
+
+    function reparte(n) {
+      var snap = {
+        docs: Object.keys(tiendas[n]).map(function (id) {
+          return { id: id, exists: true, data: function () { return tiendas[n][id]; } };
+        })
+      };
+      oyentes[n].forEach(function (f) { f(snap); });
+    }
+
+    function nuevoId() {
+      return 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    }
+
+    arranca();
+    return {
+      local: true,
+      collection: function (n) {
+        return {
+          onSnapshot: function (siguiente) {
+            oyentes[n].push(siguiente);
+            setTimeout(function () { reparte(n); }, 0);
+            return function () {};
+          },
+          add: async function (obj) {
+            var id = nuevoId();
+            tiendas[n][id] = obj;
+            persiste(); reparte(n);
+            return { id: id };
+          }
+        };
+      },
+      doc: function (r) {
+        var partes = r.split('/'), n = partes[0], id = partes[1];
+        return {
+          set: async function (obj) { tiendas[n][id] = obj; persiste(); reparte(n); },
+          delete: async function () { delete tiendas[n][id]; persiste(); reparte(n); }
+        };
+      }
+    };
+  }
+
+  function escucha(db) {
+    base = db;
     COLECCIONES.forEach(function (nombre) {
       db.collection(nombre).onSnapshot(function (snap) {
         datos[nombre] = documentos(snap);
         cargado[nombre] = true;
         revisaVacio();
-        pintaTodo();
+        yaHayDatos();
+        if (listo) pintaTodo();
       }, function (err) {
+        yaHayDatos();
         avisa('<div class="aviso aviso-alerta">No se pudieron leer los ' + esc(nombre) +
               (err && err.code ? ' (' + esc(err.code) + ')' : '') + '.</div>');
       });
     });
   }
 
+  // Pedir el permiso de entrada, en vez de esperar a que haga falta: si no se
+  // pide, la primera pintada sale con todo en cero y el programa parece vacío
+  // cuando en realidad todavía está esperando el permiso. Eso costó varias
+  // vueltas de «no tiene nada».
+  async function pidePermiso() {
+    try {
+      if (claude.permissions && typeof claude.permissions.request === 'function') {
+        await claude.permissions.request(['db']);
+      }
+    } catch (err) { /* una negativa no es un error: se sigue igual */ }
+  }
+
+  async function conecta() {
+    await pidePermiso();
+    var db = null;
+    try { db = await claude.use('db'); } catch (err) { db = null; }
+    if (db) { escucha(db); return; }
+    escucha(baseLocal());   // sin capacidad, se guarda acá mismo
+  }
+
   // === Arranque ===========================================================
+  // Mientras no haya datos no se muestran cifras en cero: se dice que está
+  // cargando. Un cero es una afirmación, y a esta altura todavía no se sabe.
+  var listo = false;
+  function yaHayDatos() {
+    if (listo) return;
+    listo = true;
+    document.getElementById('cargando').hidden = true;
+    document.getElementById('todo').hidden = false;
+    pintaTodo();
+  }
+
   pintaPestanas();
-  pintaTodo();
   if (window.claude && typeof window.claude.use === 'function') {
     conecta();
+    // Si el permiso no llega nunca, no se queda esperando para siempre.
+    setTimeout(function () { if (!base) escucha(baseLocal()); }, 15000);
   } else {
-    avisa('<div class="aviso aviso-alerta">Esta copia no puede guardar cambios: se ve, pero no recuerda.</div>');
+    escucha(baseLocal());
   }
 })();
 </script>
