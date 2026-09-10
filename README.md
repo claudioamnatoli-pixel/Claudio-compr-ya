@@ -51,6 +51,17 @@ Entrá con `claudia@compr-ya.com.py` y la contraseña `demo1234`.
 Si la pestaña no se abre sola, buscá el panel **Ports** y hacé clic en el ícono
 del globo, en el puerto 3000.
 
+**Para compartirlo con otra persona:** en el panel **Ports**, clic derecho sobre
+el puerto 3000 → **Port Visibility** → **Public**, y copiá la dirección con el
+ícono de copiar. Cualquiera con ese enlace entra sin cuenta de GitHub, mientras
+el codespace siga encendido (se suspende solo tras un rato de inactividad).
+GitHub no permite dejar esto configurado de antemano: hay que hacerlo a mano
+cada vez que se crea un codespace.
+
+> Ojo: público es público. Con los datos de ejemplo no hay problema, pero no
+> dejes un puerto abierto si algún día cargás clientes reales — la contraseña de
+> demostración está escrita en este mismo archivo.
+
 **Para saber si un entorno tiene el código actual:** la pantalla de acceso
 muestra la versión bajo el nombre de la tienda. Si no aparece ninguna versión,
 ese entorno está corriendo código anterior y hay que crear uno nuevo.
