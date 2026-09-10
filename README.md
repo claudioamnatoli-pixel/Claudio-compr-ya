@@ -31,8 +31,24 @@ cambia desde `.env` sin tocar código.
 
 ## Cómo hacerlo funcionar
 
-Tres caminos, del que menos pide al que más. Todos terminan en el mismo
-programa, con los mismos datos de ejemplo.
+Cuatro caminos, del que menos pide al que más.
+
+### 0. Un enlace y nada más
+
+Una copia que corre entera en el navegador, sin servidor y sin instalar nada.
+Se abre desde el teléfono:
+
+**https://claude.ai/code/artifact/ff0c7647-d4db-4352-8497-350e1cb28db5**
+
+Tiene las mismas ocho pantallas y las mismas reglas de negocio —stock que sale
+al confirmar y vuelve al devolver, precio congelado en la línea, comisión que
+sigue al pedido, atribución por campaña—, pero **no tiene sesiones ni permisos**:
+quien tenga el enlace ve todo. Para repartir accesos por rol, seguí con
+cualquiera de los tres caminos de abajo. Detalles en
+[`enlace/README.md`](enlace/README.md).
+
+Los tres que siguen levantan el sistema completo, con los mismos datos de
+ejemplo.
 
 ### 1. En el navegador, sin instalar nada (recomendado)
 
@@ -320,6 +336,10 @@ para colgar el identificador real de la campaña o del video.
 ## Estructura
 
 ```
+enlace/
+  compra-ya.html       La copia de un solo enlace, entera en un archivo
+  probar.mjs           63 comprobaciones de navegador sobre esa copia
+  probar-semilla.mjs   15 más, contra los datos realmente publicados
 prisma/
   schema.prisma        Modelo de datos
   seed.ts              Datos de ejemplo

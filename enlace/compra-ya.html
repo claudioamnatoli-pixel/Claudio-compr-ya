@@ -1,0 +1,1504 @@
+<title>Compra Ya</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --fondo: #F2F5F4; --panel: #FFFFFF; --hundido: #E7EDEB;
+    --tinta: #0F1E1C; --suave: #4A5F5C; --tenue: #758A86; --borde: #D7E2DF;
+    --acento: #14746A; --acento-suave: #E0EFEC;
+    --verde: #15803D; --verde-suave: #DCFCE7;
+    --ambar: #92400E; --ambar-suave: #FEF3C7;
+    --rojo: #A82F41; --rojo-suave: #FEE2E2;
+    --azul: #1D4ED8; --azul-suave: #DBEAFE;
+    --morado: #6D28D9; --morado-suave: #EDE9FE;
+    --sombra: 0 1px 2px rgba(15,30,28,.06), 0 10px 24px -14px rgba(15,30,28,.25);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --fondo: #0B1614; --panel: #12211F; --hundido: #0E1B19;
+      --tinta: #E9F1EF; --suave: #9EB3AF; --tenue: #6D8480; --borde: #223733;
+      --acento: #48C7B0; --acento-suave: #16332E;
+      --verde: #6EE7A8; --verde-suave: #14312A;
+      --ambar: #FBBF77; --ambar-suave: #33280F;
+      --rojo: #F0808F; --rojo-suave: #3A1A20;
+      --azul: #93B4FF; --azul-suave: #16244A;
+      --morado: #C4B5FD; --morado-suave: #241B47;
+      --sombra: 0 1px 2px rgba(0,0,0,.4), 0 14px 32px -18px rgba(0,0,0,.7);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --fondo: #0B1614; --panel: #12211F; --hundido: #0E1B19;
+    --tinta: #E9F1EF; --suave: #9EB3AF; --tenue: #6D8480; --borde: #223733;
+    --acento: #48C7B0; --acento-suave: #16332E;
+    --verde: #6EE7A8; --verde-suave: #14312A;
+    --ambar: #FBBF77; --ambar-suave: #33280F;
+    --rojo: #F0808F; --rojo-suave: #3A1A20;
+    --azul: #93B4FF; --azul-suave: #16244A;
+    --morado: #C4B5FD; --morado-suave: #241B47;
+    --sombra: 0 1px 2px rgba(0,0,0,.4), 0 14px 32px -18px rgba(0,0,0,.7);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--fondo); color: var(--tinta);
+    font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased;
+    padding-bottom: 5.6rem;
+  }
+  h1, h2, h3 { font-family: "Bricolage Grotesque", "IBM Plex Sans", sans-serif; font-weight: 700; line-height: 1.1; margin: 0; letter-spacing: -.02em; text-wrap: balance; }
+  p { margin: 0; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  code { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: .88em; background: var(--hundido); padding: .05rem .3rem; border-radius: 5px; }
+  .num { font-variant-numeric: tabular-nums; }
+  .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  .marco { max-width: 760px; margin: 0 auto; padding: 0 1rem; }
+
+  header.app { position: sticky; top: 0; z-index: 20; background: var(--panel); border-bottom: 1px solid var(--borde); }
+  .cabecera { display: flex; align-items: center; gap: .7rem; padding: .7rem 0; }
+  .sello { width: 2.1rem; height: 2.1rem; border-radius: 8px; flex: none; background: var(--acento); color: #fff; display: grid; place-items: center; font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: .82rem; }
+  .titulo-app { font-size: .96rem; font-weight: 600; }
+  .titulo-app span { display: block; font-size: .71rem; font-weight: 400; color: var(--tenue); }
+
+  main { padding-top: 1rem; }
+  .vista { display: none; }
+  .vista.activa { display: block; }
+  .encabezado { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: .85rem; }
+  .encabezado h2 { font-size: 1.35rem; }
+  .conteo { font-size: .78rem; color: var(--tenue); }
+  .subtitulo { margin: 1.3rem 0 .6rem; font-size: .95rem; }
+
+  .lista { display: flex; flex-direction: column; gap: .5rem; }
+  .fila { width: 100%; text-align: left; background: var(--panel); border: 1px solid var(--borde); border-radius: 14px; box-shadow: var(--sombra); padding: .78rem .9rem; cursor: pointer; display: block; transition: border-color .15s, transform .12s; }
+  .fila:hover { border-color: var(--acento); }
+  .fila:active { transform: scale(.995); }
+  .fila:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+  .fila--quieta { cursor: default; }
+  .fila--quieta:hover { border-color: var(--borde); }
+  .fila--quieta:active { transform: none; }
+  .fila__alto { display: flex; align-items: start; justify-content: space-between; gap: .8rem; }
+  .fila__nombre { font-weight: 600; }
+  .fila__pie { margin-top: .26rem; font-size: .79rem; color: var(--tenue); display: flex; flex-wrap: wrap; gap: .38rem; align-items: center; }
+  .importe { font-weight: 600; white-space: nowrap; }
+
+  .rejilla { display: grid; grid-template-columns: repeat(2, 1fr); gap: .5rem; }
+  .dato { background: var(--panel); border: 1px solid var(--borde); border-radius: 14px; padding: .78rem .82rem; box-shadow: var(--sombra); }
+  .dato__nombre { font-size: .69rem; text-transform: uppercase; letter-spacing: .07em; color: var(--tenue); }
+  .dato__cifra { margin-top: .28rem; font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 1.35rem; }
+  .dato__pie { margin-top: .1rem; font-size: .72rem; color: var(--tenue); }
+
+  .pastilla { display: inline-block; padding: .1rem .52rem; border-radius: 999px; font-size: .71rem; font-weight: 600; white-space: nowrap; }
+  .p-gris { background: var(--hundido); color: var(--suave); }
+  .p-azul { background: var(--azul-suave); color: var(--azul); }
+  .p-verde { background: var(--verde-suave); color: var(--verde); }
+  .p-ambar { background: var(--ambar-suave); color: var(--ambar); }
+  .p-rojo { background: var(--rojo-suave); color: var(--rojo); }
+  .p-acento { background: var(--acento-suave); color: var(--acento); }
+  .p-morado { background: var(--morado-suave); color: var(--morado); }
+
+  .barrita { height: 6px; border-radius: 999px; background: var(--hundido); overflow: hidden; margin-top: .38rem; }
+  .barrita > i { display: block; height: 100%; border-radius: 999px; background: var(--acento); }
+  .barrita.alta > i { background: var(--verde); }
+  .barrita.baja > i { background: var(--ambar); }
+
+  .filtros { display: flex; gap: .38rem; overflow-x: auto; padding-bottom: .7rem; scrollbar-width: none; }
+  .filtros::-webkit-scrollbar { display: none; }
+  .filtro { flex: none; background: var(--panel); border: 1px solid var(--borde); border-radius: 999px; padding: .3rem .78rem; font-size: .79rem; cursor: pointer; color: var(--suave); }
+  .filtro[aria-pressed="true"] { background: var(--acento); border-color: var(--acento); color: #fff; font-weight: 600; }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: .45rem; border: 1px solid transparent; border-radius: 11px; padding: .6rem 1rem; font-size: .91rem; font-weight: 600; cursor: pointer; text-decoration: none; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-primario { background: var(--acento); color: #fff; }
+  .btn-suave { background: var(--panel); border-color: var(--borde); color: var(--tinta); }
+  .btn-peligro { background: var(--panel); border-color: var(--rojo); color: var(--rojo); }
+  .btn-wa { background: #25D366; color: #06281A; }
+  .btn-ancho { width: 100%; }
+  .btn:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+  .botonera { display: flex; flex-direction: column; gap: .48rem; margin-top: .9rem; }
+
+  nav.barra { position: fixed; bottom: 0; left: 0; right: 0; z-index: 30; background: var(--panel); border-top: 1px solid var(--borde); padding-bottom: env(safe-area-inset-bottom); }
+  .barra__interior { max-width: 760px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); }
+  .pestana { background: none; border: 0; padding: .48rem .1rem .52rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: .1rem; color: var(--tenue); font-size: .65rem; font-weight: 500; }
+  .pestana svg { width: 1.25rem; height: 1.25rem; }
+  .pestana[aria-current="true"] { color: var(--acento); font-weight: 600; }
+
+  .hoja { position: fixed; inset: 0; z-index: 40; display: none; background: rgba(6,14,13,.5); align-items: flex-end; justify-content: center; }
+  .hoja.abierta { display: flex; }
+  .hoja__caja { background: var(--fondo); width: 100%; max-width: 760px; max-height: 92vh; overflow-y: auto; border-radius: 18px 18px 0 0; padding: 1rem 1rem 2rem; box-shadow: 0 -8px 40px rgba(0,0,0,.3); }
+  @media (min-width: 640px) { .hoja { align-items: center; } .hoja__caja { border-radius: 18px; max-height: 86vh; } }
+  .hoja__barra { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: .85rem; }
+  .hoja__barra h3 { font-size: 1.12rem; }
+  .cerrar { background: none; border: 0; color: var(--tenue); font-size: 1.7rem; line-height: 1; cursor: pointer; padding: 0 .3rem; }
+
+  .bloque { background: var(--panel); border: 1px solid var(--borde); border-radius: 14px; padding: .8rem .88rem; margin-bottom: .75rem; }
+  .renglon { display: flex; justify-content: space-between; gap: 1rem; padding: .2rem 0; font-size: .9rem; }
+  .renglon dt { color: var(--tenue); }
+  .renglon dd { margin: 0; font-weight: 500; text-align: right; }
+  .total { border-top: 1px solid var(--borde); margin-top: .38rem; padding-top: .48rem; font-size: 1rem; font-weight: 700; }
+
+  .campo { display: block; margin-bottom: .68rem; }
+  .campo > span { display: block; font-size: .71rem; text-transform: uppercase; letter-spacing: .06em; color: var(--tenue); margin-bottom: .2rem; }
+  .campo input, .campo select, .campo textarea { width: 100%; background: var(--panel); border: 1px solid var(--borde); border-radius: 11px; padding: .56rem .68rem; outline: none; }
+  .campo input:focus, .campo select:focus, .campo textarea:focus { border-color: var(--acento); box-shadow: 0 0 0 3px var(--acento-suave); }
+  .par { display: grid; grid-template-columns: 1fr 1fr; gap: .52rem; }
+
+  .aviso { border-radius: 12px; padding: .7rem .8rem; font-size: .86rem; margin-bottom: .85rem; }
+  .aviso-alerta { background: var(--ambar-suave); color: var(--ambar); }
+  .aviso-info { background: var(--acento-suave); color: var(--acento); }
+  .vacio { text-align: center; padding: 2.2rem 1rem; color: var(--tenue); font-size: .9rem; }
+  .nota { margin-top: .7rem; font-size: .78rem; color: var(--tenue); }
+
+  .menu { display: flex; flex-direction: column; gap: .5rem; }
+  .menu__item { display: flex; align-items: center; justify-content: space-between; gap: .8rem; width: 100%; text-align: left; background: var(--panel); border: 1px solid var(--borde); border-radius: 14px; padding: .85rem .9rem; cursor: pointer; box-shadow: var(--sombra); }
+  .menu__item:hover { border-color: var(--acento); }
+  .menu__item b { display: block; font-weight: 600; }
+  .menu__item span { font-size: .79rem; color: var(--tenue); }
+  .flecha { color: var(--tenue); }
+
+  .brindis { position: fixed; left: 50%; transform: translateX(-50%); bottom: 5.4rem; z-index: 50; background: var(--tinta); color: var(--fondo); padding: .55rem 1rem; border-radius: 999px; font-size: .85rem; font-weight: 500; opacity: 0; pointer-events: none; transition: opacity .2s; max-width: 90vw; text-align: center; }
+  .brindis.visible { opacity: 1; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<header class="app">
+  <div class="marco cabecera">
+    <span class="sello">CY</span>
+    <span class="titulo-app">Compra Ya<span>Ventas por TikTok · Paraguay</span></span>
+  </div>
+</header>
+
+<main class="marco">
+  <div id="avisoConexion"></div>
+
+  <section class="vista activa" id="v-hoy">
+    <div class="encabezado"><h2>Hoy</h2><span class="conteo" id="hoyFecha"></span></div>
+    <div class="rejilla" id="hoyDatos"></div>
+    <h3 class="subtitulo">Embudo de prospectos</h3>
+    <div class="bloque" id="hoyEmbudo"></div>
+    <h3 class="subtitulo">Campañas que más venden</h3>
+    <div class="lista" id="hoyCampanas"></div>
+    <h3 class="subtitulo">Pendiente de atender</h3>
+    <div class="lista" id="hoyPendientes"></div>
+  </section>
+
+  <section class="vista" id="v-prospectos">
+    <div class="encabezado"><h2>Prospectos</h2><span class="conteo" id="contProspectos"></span></div>
+    <div class="filtros" id="filtrosProspectos"></div>
+    <div class="lista" id="listaProspectos"></div>
+    <button class="btn btn-primario btn-ancho" style="margin-top:1rem" id="btnNuevoProspecto">+ Nuevo prospecto</button>
+  </section>
+
+  <section class="vista" id="v-pedidos">
+    <div class="encabezado"><h2>Pedidos</h2><span class="conteo" id="contPedidos"></span></div>
+    <div class="filtros" id="filtrosPedidos"></div>
+    <div class="lista" id="listaPedidos"></div>
+  </section>
+
+  <section class="vista" id="v-entregas">
+    <div class="encabezado"><h2>Entregas</h2><span class="conteo" id="contEntregas"></span></div>
+    <div class="rejilla" id="entregasDatos"></div>
+    <h3 class="subtitulo">En la calle</h3>
+    <div class="lista" id="listaEntregas"></div>
+  </section>
+
+  <section class="vista" id="v-mas">
+    <div class="encabezado"><h2>Más</h2></div>
+    <div class="menu" id="menuMas"></div>
+  </section>
+
+  <section class="vista" id="v-productos">
+    <div class="encabezado"><h2>Inventario</h2><span class="conteo" id="contProductos"></span></div>
+    <div class="rejilla" id="inventarioDatos"></div>
+    <div class="lista" id="listaProductos" style="margin-top:.9rem"></div>
+    <button class="btn btn-primario btn-ancho" style="margin-top:1rem" id="btnNuevoProducto">+ Nuevo producto</button>
+  </section>
+
+  <section class="vista" id="v-campanas">
+    <div class="encabezado"><h2>Campañas</h2><span class="conteo" id="contCampanas"></span></div>
+    <div class="rejilla" id="campanasDatos"></div>
+    <div class="lista" id="listaCampanas" style="margin-top:.9rem"></div>
+    <button class="btn btn-primario btn-ancho" style="margin-top:1rem" id="btnNuevaCampana">+ Nueva campaña</button>
+  </section>
+
+  <section class="vista" id="v-equipo">
+    <div class="encabezado"><h2>Equipo</h2><span class="conteo" id="contEquipo"></span></div>
+    <div class="lista" id="listaEquipo"></div>
+    <button class="btn btn-primario btn-ancho" style="margin-top:1rem" id="btnNuevoVendedor">+ Agregar a alguien</button>
+  </section>
+
+  <section class="vista" id="v-plantillas">
+    <div class="encabezado"><h2>Plantillas</h2><span class="conteo" id="contPlantillas"></span></div>
+    <p class="nota" style="margin-top:0;margin-bottom:.8rem">Las variables entre llaves se reemplazan con los datos del cliente: <code>{{cliente}}</code>, <code>{{producto}}</code>, <code>{{precio}}</code>, <code>{{ciudad}}</code>, <code>{{pedido}}</code>.</p>
+    <div class="lista" id="listaPlantillas"></div>
+    <button class="btn btn-primario btn-ancho" style="margin-top:1rem" id="btnNuevaPlantilla">+ Nueva plantilla</button>
+  </section>
+</main>
+
+<nav class="barra"><div class="barra__interior" id="pestanas"></div></nav>
+
+<div class="hoja" id="hoja">
+  <div class="hoja__caja" role="dialog" aria-modal="true" aria-labelledby="hojaTitulo">
+    <div class="hoja__barra">
+      <h3 id="hojaTitulo"></h3>
+      <button class="cerrar" id="hojaCerrar" aria-label="Cerrar">&times;</button>
+    </div>
+    <div id="hojaCuerpo"></div>
+  </div>
+</div>
+
+<div class="brindis" id="brindis"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  // === Dinero =============================================================
+  // El guaraní no tiene centavos: los importes son enteros, sin decimales.
+  var fmtGs = new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG', maximumFractionDigits: 0 });
+  function gs(n) { return fmtGs.format(Number(n) || 0); }
+  function pct(f) { return new Intl.NumberFormat('es-PY', { style: 'percent', maximumFractionDigits: 0 }).format(f || 0); }
+  function fecha(iso) {
+    if (!iso) return '—';
+    return new Intl.DateTimeFormat('es-PY', { day: '2-digit', month: 'short' }).format(new Date(iso));
+  }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  // === WhatsApp ===========================================================
+  // Un móvil paraguayo se escribe 0981… y se marca 595981…: se quita el cero.
+  function aWhatsApp(tel) {
+    var d = String(tel || '').replace(/\D/g, '').replace(/^0+/, '');
+    return d ? (d.indexOf('595') === 0 ? d : '595' + d) : '';
+  }
+  function enlaceWa(tel, msg) {
+    return 'https://wa.me/' + aWhatsApp(tel) + (msg ? '?text=' + encodeURIComponent(msg) : '');
+  }
+  // Reemplaza {{variable}} por su valor; lo que falte se deja en blanco, para
+  // no mandarle "{{producto}}" a un cliente por descuido.
+  function rellena(texto, vars) {
+    return String(texto || '').replace(/\{\{\s*(\w+)\s*\}\}/g, function (_, clave) {
+      return vars[clave] == null ? '' : String(vars[clave]);
+    });
+  }
+
+  // === Catálogos ==========================================================
+  var ETAPAS = [
+    { id: 'NUEVO', nombre: 'Nuevo', clase: 'p-azul' },
+    { id: 'CONTACTADO', nombre: 'Contactado', clase: 'p-acento' },
+    { id: 'COTIZADO', nombre: 'Cotizado', clase: 'p-ambar' },
+    { id: 'GANADO', nombre: 'Ganado', clase: 'p-verde' },
+    { id: 'PERDIDO', nombre: 'Perdido', clase: 'p-rojo' }
+  ];
+  // Sólo se ofrecen los pasos válidos: un pedido entregado no vuelve atrás.
+  var ESTADOS = [
+    { id: 'PENDIENTE', nombre: 'Pendiente', clase: 'p-gris', siguiente: ['CONFIRMADO', 'CANCELADO'] },
+    { id: 'CONFIRMADO', nombre: 'Confirmado', clase: 'p-azul', siguiente: ['ENVIADO', 'CANCELADO'] },
+    { id: 'ENVIADO', nombre: 'En camino', clase: 'p-ambar', siguiente: ['ENTREGADO', 'DEVUELTO'] },
+    { id: 'ENTREGADO', nombre: 'Entregado', clase: 'p-verde', siguiente: [] },
+    { id: 'CANCELADO', nombre: 'Cancelado', clase: 'p-rojo', siguiente: [] },
+    { id: 'DEVUELTO', nombre: 'Devuelto', clase: 'p-rojo', siguiente: [] }
+  ];
+  var VENDIDOS = ['CONFIRMADO', 'ENVIADO', 'ENTREGADO'];
+  var PAGOS = [
+    { id: 'CONTRA_ENTREGA', nombre: 'Contra entrega', clase: 'p-ambar' },
+    { id: 'TRANSFERENCIA', nombre: 'Transferencia', clase: 'p-azul' },
+    { id: 'TARJETA', nombre: 'Tarjeta', clase: 'p-morado' }
+  ];
+  var TIPOS_CAMPANA = [
+    { id: 'VIVO', nombre: 'Vivo', clase: 'p-rojo' },
+    { id: 'AVISO', nombre: 'Aviso pagado', clase: 'p-morado' },
+    { id: 'VIDEO', nombre: 'Video orgánico', clase: 'p-acento' },
+    { id: 'PERFIL', nombre: 'Perfil / bio', clase: 'p-gris' }
+  ];
+  var ZONAS = [
+    { nombre: 'Asunción', costo: 25000 },
+    { nombre: 'Gran Asunción', costo: 35000 },
+    { nombre: 'Ciudad del Este', costo: 60000 },
+    { nombre: 'Interior (encomienda)', costo: 75000 }
+  ];
+
+  function busca(cat, id) { return cat.filter(function (x) { return x.id === id; })[0] || cat[0]; }
+  function etapaDe(id) { return busca(ETAPAS, id); }
+  function estadoDe(id) { return busca(ESTADOS, id); }
+  function pagoDe(id) { return busca(PAGOS, id); }
+  function tipoCampanaDe(id) { return busca(TIPOS_CAMPANA, id); }
+  function pastilla(txt, clase) { return '<span class="pastilla ' + clase + '">' + esc(txt) + '</span>'; }
+  // El color sólo avisa donde poco es un problema —el stock—. En el embudo
+  // una etapa corta es lo normal, así que ahí la barra va neutra.
+  function barrita(fraccion, neutra) {
+    var f = Math.max(0, Math.min(1, fraccion || 0));
+    var clase = neutra ? '' : (f >= 1 ? 'alta' : (f < .4 ? 'baja' : ''));
+    return '<div class="barrita ' + clase + '"><i style="width:' + (f * 100) + '%"></i></div>';
+  }
+
+  // === Estado =============================================================
+  var COLECCIONES = ['productos', 'prospectos', 'pedidos', 'campanas', 'equipo', 'plantillas'];
+  var base = null;
+  var datos = { productos: [], prospectos: [], pedidos: [], campanas: [], equipo: [], plantillas: [] };
+  var cargado = {};
+  var filtro = { prospectos: '', pedidos: '' };
+  var vistaActual = 'hoy';
+  var hojaAbierta = null;
+
+  function porId(lista, id) { return lista.filter(function (x) { return x.id === id; })[0] || null; }
+  function nombreDe(lista, id, campo) { var x = porId(lista, id); return x ? x[campo || 'nombre'] : ''; }
+
+  function brindis(txt) {
+    var b = document.getElementById('brindis');
+    b.textContent = txt;
+    b.classList.add('visible');
+    clearTimeout(b._t);
+    b._t = setTimeout(function () { b.classList.remove('visible'); }, 2800);
+  }
+  function renglon(dt, dd) { return '<div class="renglon"><dt>' + dt + '</dt><dd>' + dd + '</dd></div>'; }
+
+  // === Navegación =========================================================
+  var PESTANAS = [
+    { id: 'hoy', nombre: 'Hoy', icono: 'M3 12l9-9 9 9M5 10v10h14V10' },
+    { id: 'prospectos', nombre: 'Prospectos', icono: 'M4 20a8 8 0 0116 0M12 12a4 4 0 100-8 4 4 0 000 8z' },
+    { id: 'pedidos', nombre: 'Pedidos', icono: 'M6 2l1.5 4h9L18 2M4 6h16l-1.5 14h-13L4 6z' },
+    { id: 'entregas', nombre: 'Entregas', icono: 'M3 7h11v9H3zM14 10h4l3 3v3h-7zM7 19a2 2 0 100-4 2 2 0 000 4zM18 19a2 2 0 100-4 2 2 0 000 4z' },
+    { id: 'mas', nombre: 'Más', icono: 'M4 6h16M4 12h16M4 18h16' }
+  ];
+  var SECUNDARIAS = ['productos', 'campanas', 'equipo', 'plantillas'];
+  var TODAS = PESTANAS.map(function (p) { return p.id; }).concat(SECUNDARIAS);
+
+  function pintaPestanas() {
+    var activa = PESTANAS.map(function (p) { return p.id; }).indexOf(vistaActual) >= 0 ? vistaActual : 'mas';
+    document.getElementById('pestanas').innerHTML = PESTANAS.map(function (v) {
+      return '<button class="pestana" data-vista="' + v.id + '" aria-current="' + (v.id === activa) + '">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + v.icono + '"/></svg>' +
+        v.nombre + '</button>';
+    }).join('');
+  }
+
+  function vamosA(id) {
+    vistaActual = id;
+    TODAS.forEach(function (v) {
+      var el = document.getElementById('v-' + v);
+      if (el) el.classList.toggle('activa', v === id);
+    });
+    pintaPestanas();
+    window.scrollTo(0, 0);
+  }
+
+  function pintaMenuMas() {
+    var items = [
+      { id: 'productos', nombre: 'Inventario', pie: datos.productos.length + ' productos' },
+      { id: 'campanas', nombre: 'Campañas', pie: datos.campanas.length + ' vivos y avisos' },
+      { id: 'equipo', nombre: 'Equipo', pie: datos.equipo.length + ' personas' },
+      { id: 'plantillas', nombre: 'Plantillas de WhatsApp', pie: datos.plantillas.length + ' mensajes guardados' }
+    ];
+    document.getElementById('menuMas').innerHTML = items.map(function (i) {
+      return '<button class="menu__item" data-vista="' + i.id + '">' +
+        '<span><b>' + esc(i.nombre) + '</b><span>' + esc(i.pie) + '</span></span>' +
+        '<span class="flecha">›</span></button>';
+    }).join('');
+  }
+
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-vista]');
+    if (b) vamosA(b.getAttribute('data-vista'));
+  });
+
+  // === Hoja emergente =====================================================
+  var hoja = document.getElementById('hoja');
+  function abreHoja(titulo, html, contexto) {
+    hojaAbierta = contexto || null;
+    document.getElementById('hojaTitulo').textContent = titulo;
+    document.getElementById('hojaCuerpo').innerHTML = html;
+    hoja.classList.add('abierta');
+    document.body.style.overflow = 'hidden';
+  }
+  function cierraHoja() {
+    hojaAbierta = null;
+    hoja.classList.remove('abierta');
+    document.body.style.overflow = '';
+  }
+  document.getElementById('hojaCerrar').addEventListener('click', cierraHoja);
+  hoja.addEventListener('click', function (e) { if (e.target === hoja) cierraHoja(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && hoja.classList.contains('abierta')) cierraHoja(); });
+
+  // === Escritura ==========================================================
+  function hayBase() {
+    if (base) return true;
+    brindis('Sin almacenamiento: no se guardó');
+    return false;
+  }
+  async function guarda(coleccion, id, obj) {
+    if (!hayBase()) return false;
+    try { await base.doc(coleccion + '/' + id).set(obj); return true; }
+    catch (err) { brindis('No se pudo guardar' + (err && err.code ? ' (' + err.code + ')' : '')); return false; }
+  }
+  async function agrega(coleccion, obj) {
+    if (!hayBase()) return false;
+    try { await base.collection(coleccion).add(obj); return true; }
+    catch (err) { brindis('No se pudo guardar' + (err && err.code ? ' (' + err.code + ')' : '')); return false; }
+  }
+  function sinId(obj, cambios) {
+    var copia = Object.assign({}, obj, cambios || {});
+    delete copia.id;
+    return copia;
+  }
+
+  // === Cálculos del negocio ==============================================
+  function inicioDelMes() { var d = new Date(); d.setDate(1); d.setHours(0, 0, 0, 0); return d; }
+
+  function ventasDelMes() {
+    var desde = inicioDelMes();
+    return datos.pedidos.filter(function (p) {
+      return VENDIDOS.indexOf(p.estado) >= 0 && new Date(p.creado || 0) >= desde;
+    });
+  }
+  function suma(lista, campo) {
+    return lista.reduce(function (s, x) { return s + (Number(x[campo]) || 0); }, 0);
+  }
+  // Ingresos atribuidos a una campaña: los pedidos de los prospectos que trajo.
+  function ingresosDeCampana(campanaId) {
+    var suyos = datos.prospectos.filter(function (l) { return l.campanaId === campanaId; })
+      .map(function (l) { return l.id; });
+    return datos.pedidos.filter(function (p) {
+      return VENDIDOS.indexOf(p.estado) >= 0 && suyos.indexOf(p.prospectoId) >= 0;
+    }).reduce(function (s, p) { return s + (p.total || 0); }, 0);
+  }
+  function comisionDe(pedido) {
+    var v = pedido.vendedorId ? porId(datos.equipo, pedido.vendedorId) : null;
+    if (!v) return 0;
+    var base_ = (pedido.total || 0) - (pedido.envio || 0);
+    return Math.round(base_ * (Number(v.comision) || 0));
+  }
+
+  // === Vista: Hoy =========================================================
+  function dato(nombre, cifra, pie) {
+    return '<div class="dato"><div class="dato__nombre">' + esc(nombre) + '</div>' +
+      '<div class="dato__cifra num">' + esc(cifra) + '</div>' +
+      '<div class="dato__pie">' + esc(pie) + '</div></div>';
+  }
+
+  function pintaHoy() {
+    document.getElementById('hoyFecha').textContent =
+      new Intl.DateTimeFormat('es-PY', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
+
+    var vendidos = ventasDelMes();
+    var ventas = suma(vendidos, 'total');
+    var enCalle = datos.pedidos.filter(function (p) { return p.estado === 'CONFIRMADO' || p.estado === 'ENVIADO'; });
+    var desde = inicioDelMes();
+    var prospectosMes = datos.prospectos.filter(function (l) { return new Date(l.creado || 0) >= desde; });
+    var ganadosMes = prospectosMes.filter(function (l) { return l.estado === 'GANADO'; });
+    var ticket = vendidos.length ? Math.round(ventas / vendidos.length) : 0;
+
+    document.getElementById('hoyDatos').innerHTML = [
+      dato('Ventas del mes', gs(ventas), vendidos.length + (vendidos.length === 1 ? ' pedido' : ' pedidos')),
+      dato('Ticket promedio', gs(ticket), 'por pedido'),
+      dato('Conversión', prospectosMes.length ? pct(ganadosMes.length / prospectosMes.length) : '—',
+           ganadosMes.length + ' de ' + prospectosMes.length + ' prospectos'),
+      dato('Por cobrar', gs(suma(enCalle, 'total')), enCalle.length + ' en la calle')
+    ].join('');
+
+    // Embudo
+    var total = datos.prospectos.length || 1;
+    document.getElementById('hoyEmbudo').innerHTML = ETAPAS.map(function (e) {
+      var n = datos.prospectos.filter(function (l) { return l.estado === e.id; }).length;
+      return '<div style="margin-bottom:.55rem">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;font-size:.85rem">' +
+        pastilla(e.nombre, e.clase) + '<span class="num" style="font-weight:600">' + n + '</span></div>' +
+        barrita(n / total, true) + '</div>';
+    }).join('') || '<div class="vacio">Sin prospectos todavía.</div>';
+
+    // Campañas por ingresos
+    var campanas = datos.campanas.map(function (c) {
+      var suyos = datos.prospectos.filter(function (l) { return l.campanaId === c.id; });
+      return {
+        c: c, prospectos: suyos.length,
+        ganados: suyos.filter(function (l) { return l.estado === 'GANADO'; }).length,
+        ingresos: ingresosDeCampana(c.id)
+      };
+    }).sort(function (a, b) { return b.ingresos - a.ingresos; }).slice(0, 3);
+
+    document.getElementById('hoyCampanas').innerHTML = campanas.length
+      ? campanas.map(function (x) {
+          var t = tipoCampanaDe(x.c.tipo);
+          var retorno = (x.c.inversion > 0) ? (x.ingresos / x.c.inversion).toFixed(1) + '×' : 'Orgánica';
+          return '<div class="fila fila--quieta"><div class="fila__alto">' +
+            '<span class="fila__nombre">' + esc(x.c.nombre) + '</span>' +
+            '<span class="importe num">' + gs(x.ingresos) + '</span></div>' +
+            '<div class="fila__pie">' + pastilla(t.nombre, t.clase) +
+            '<span>· ' + x.prospectos + ' prospectos</span>' +
+            '<span>· ' + (x.prospectos ? pct(x.ganados / x.prospectos) : '0%') + ' de cierre</span>' +
+            '<span>· ' + esc(retorno) + '</span></div></div>';
+        }).join('')
+      : '<div class="vacio">Sin campañas registradas.</div>';
+
+    // Pendientes
+    var nuevos = datos.prospectos.filter(function (l) { return l.estado === 'NUEVO'; });
+    var pendientes = nuevos.slice(0, 3).map(filaProspecto)
+      .concat(enCalle.slice(0, 3).map(filaPedido));
+    document.getElementById('hoyPendientes').innerHTML =
+      pendientes.length ? pendientes.join('') : '<div class="vacio">Nada pendiente. Buen momento para hacer un vivo.</div>';
+  }
+
+  // === Vista: Prospectos ==================================================
+  function filaProspecto(p) {
+    var e = etapaDe(p.estado);
+    var prod = p.productoId ? porId(datos.productos, p.productoId) : null;
+    var vend = p.vendedorId ? porId(datos.equipo, p.vendedorId) : null;
+    return '<button class="fila" data-prospecto="' + esc(p.id) + '">' +
+      '<div class="fila__alto"><span class="fila__nombre">' + esc(p.nombre) + '</span>' + pastilla(e.nombre, e.clase) + '</div>' +
+      '<div class="fila__pie"><span class="mono">' + esc(p.telefono) + '</span>' +
+      (p.ciudad ? '<span>· ' + esc(p.ciudad) + '</span>' : '') +
+      (prod ? '<span>· ' + esc(prod.nombre) + '</span>' : '') +
+      (vend ? '<span>· ' + esc(vend.nombre) + '</span>' : '') + '</div></button>';
+  }
+
+  function pintaProspectos() {
+    document.getElementById('filtrosProspectos').innerHTML =
+      ['<button class="filtro" data-fp="" aria-pressed="' + (filtro.prospectos === '') + '">Todos ' + datos.prospectos.length + '</button>']
+        .concat(ETAPAS.map(function (e) {
+          var n = datos.prospectos.filter(function (p) { return p.estado === e.id; }).length;
+          return '<button class="filtro" data-fp="' + e.id + '" aria-pressed="' + (filtro.prospectos === e.id) + '">' + e.nombre + ' ' + n + '</button>';
+        })).join('');
+
+    var lista = datos.prospectos.filter(function (p) { return !filtro.prospectos || p.estado === filtro.prospectos; });
+    lista.sort(function (a, b) { return String(b.creado || '').localeCompare(String(a.creado || '')); });
+    document.getElementById('contProspectos').textContent = lista.length + ' de ' + datos.prospectos.length;
+    document.getElementById('listaProspectos').innerHTML =
+      lista.length ? lista.map(filaProspecto).join('') : '<div class="vacio">No hay prospectos en esta etapa.</div>';
+  }
+
+  function abreProspecto(id) {
+    var p = porId(datos.prospectos, id);
+    if (!p) return cierraHoja();
+    var prod = p.productoId ? porId(datos.productos, p.productoId) : null;
+    var camp = p.campanaId ? porId(datos.campanas, p.campanaId) : null;
+    var vars = {
+      cliente: String(p.nombre || '').split(' ')[0],
+      producto: prod ? prod.nombre : '',
+      precio: prod ? gs(prod.precio) : '',
+      ciudad: p.ciudad || '',
+      pedido: ''
+    };
+    var sugeridas = datos.plantillas.filter(function (t) { return t.etapa === p.estado; });
+    var plantillas = sugeridas.concat(datos.plantillas.filter(function (t) { return t.etapa !== p.estado; }));
+    var primera = plantillas[0];
+    var mensaje = primera ? rellena(primera.cuerpo, vars)
+      : '¡Hola ' + vars.cliente + '! 👋 Te escribo de Compra Ya por tu consulta de TikTok.';
+
+    var html =
+      '<div class="bloque"><dl style="margin:0">' +
+        renglon('Teléfono', '<span class="mono">' + esc(p.telefono) + '</span>') +
+        (p.ciudad ? renglon('Ciudad', esc(p.ciudad)) : '') +
+        (prod ? renglon('Le interesa', esc(prod.nombre) + ' · ' + gs(prod.precio)) : '') +
+        (camp ? renglon('Vino de', esc(camp.nombre)) : '') +
+        renglon('Registrado', fecha(p.creado)) +
+        (p.notas ? renglon('Notas', esc(p.notas)) : '') +
+      '</dl></div>' +
+      '<div class="par">' +
+        '<label class="campo"><span>Etapa</span><select id="etapaSel">' +
+          ETAPAS.map(function (e) { return '<option value="' + e.id + '"' + (e.id === p.estado ? ' selected' : '') + '>' + e.nombre + '</option>'; }).join('') +
+        '</select></label>' +
+        '<label class="campo"><span>Responsable</span><select id="vendSel"><option value="">Sin asignar</option>' +
+          datos.equipo.map(function (v) { return '<option value="' + esc(v.id) + '"' + (v.id === p.vendedorId ? ' selected' : '') + '>' + esc(v.nombre) + '</option>'; }).join('') +
+        '</select></label>' +
+      '</div>' +
+      (plantillas.length ? '<label class="campo"><span>Plantilla</span><select id="plantSel">' +
+        plantillas.map(function (t, i) {
+          return '<option value="' + esc(t.id) + '"' + (i === 0 ? ' selected' : '') + '>' + esc(t.nombre) +
+            (t.etapa === p.estado ? ' (sugerida)' : '') + '</option>';
+        }).join('') + '</select></label>' : '') +
+      '<label class="campo"><span>Mensaje</span><textarea id="msgTxt" rows="5">' + esc(mensaje) + '</textarea></label>' +
+      '<div class="botonera">' +
+        '<a class="btn btn-wa btn-ancho" id="btnWa" href="' + enlaceWa(p.telefono, mensaje) + '" target="_blank" rel="noopener noreferrer">Abrir WhatsApp con este mensaje</a>' +
+        '<button class="btn btn-primario btn-ancho" data-nuevo-pedido="' + esc(p.id) + '">Crear pedido</button>' +
+      '</div>' +
+      '<p class="nota">El chat se abre con el texto ya escrito. Nada se envía solo.</p>';
+
+    abreHoja(p.nombre, html, { tipo: 'prospecto', id: id });
+
+    var caja = document.getElementById('msgTxt');
+    var enlace = document.getElementById('btnWa');
+    function refrescaEnlace() { enlace.href = enlaceWa(p.telefono, caja.value); }
+    caja.addEventListener('input', refrescaEnlace);
+
+    var sel = document.getElementById('plantSel');
+    if (sel) sel.addEventListener('change', function () {
+      var t = porId(datos.plantillas, sel.value);
+      if (t) { caja.value = rellena(t.cuerpo, vars); refrescaEnlace(); }
+    });
+
+    document.getElementById('etapaSel').addEventListener('change', async function (e) {
+      if (await guarda('prospectos', id, sinId(p, { estado: e.target.value }))) brindis('Etapa actualizada');
+    });
+    document.getElementById('vendSel').addEventListener('change', async function (e) {
+      if (await guarda('prospectos', id, sinId(p, { vendedorId: e.target.value }))) brindis('Responsable asignado');
+    });
+    enlace.addEventListener('click', async function () {
+      if (p.estado === 'NUEVO') await guarda('prospectos', id, sinId(p, { estado: 'CONTACTADO' }));
+    });
+  }
+
+  // === Vista: Pedidos =====================================================
+  function filaPedido(p) {
+    var e = estadoDe(p.estado);
+    var pg = pagoDe(p.metodoPago);
+    return '<button class="fila" data-pedido="' + esc(p.id) + '">' +
+      '<div class="fila__alto"><span class="fila__nombre">' + esc(p.cliente) + '</span>' +
+      '<span class="importe num">' + gs(p.total) + '</span></div>' +
+      '<div class="fila__pie"><span class="mono">' + esc(p.codigo) + '</span>' +
+      '<span>· ' + fecha(p.creado) + '</span>' +
+      pastilla(pg.nombre, pg.clase) + pastilla(e.nombre, e.clase) + '</div></button>';
+  }
+
+  function pintaPedidos() {
+    document.getElementById('filtrosPedidos').innerHTML =
+      ['<button class="filtro" data-fpe="" aria-pressed="' + (filtro.pedidos === '') + '">Todos ' + datos.pedidos.length + '</button>']
+        .concat(ESTADOS.map(function (e) {
+          var n = datos.pedidos.filter(function (p) { return p.estado === e.id; }).length;
+          return '<button class="filtro" data-fpe="' + e.id + '" aria-pressed="' + (filtro.pedidos === e.id) + '">' + e.nombre + ' ' + n + '</button>';
+        })).join('');
+
+    var lista = datos.pedidos.filter(function (p) { return !filtro.pedidos || p.estado === filtro.pedidos; });
+    lista.sort(function (a, b) { return String(b.creado || '').localeCompare(String(a.creado || '')); });
+    document.getElementById('contPedidos').textContent = lista.length + ' de ' + datos.pedidos.length;
+    document.getElementById('listaPedidos').innerHTML =
+      lista.length ? lista.map(filaPedido).join('') : '<div class="vacio">Todavía no hay pedidos. Se crean desde un prospecto.</div>';
+  }
+
+  function abrePedido(id) {
+    var p = porId(datos.pedidos, id);
+    if (!p) return cierraHoja();
+    var e = estadoDe(p.estado);
+    var pg = pagoDe(p.metodoPago);
+    var items = p.items || [];
+    var vend = p.vendedorId ? porId(datos.equipo, p.vendedorId) : null;
+    var comision = comisionDe(p);
+
+    var html =
+      '<p style="margin-bottom:.8rem">' + pastilla(e.nombre, e.clase) + ' ' + pastilla(pg.nombre, pg.clase) +
+        ' <span class="mono" style="color:var(--tenue);font-size:.82rem">' + esc(p.codigo) + '</span></p>' +
+      '<div class="bloque"><dl style="margin:0">' +
+        items.map(function (i) {
+          return renglon(esc(i.cantidad) + ' × ' + esc(i.nombre), '<span class="num">' + gs(i.precio * i.cantidad) + '</span>');
+        }).join('') +
+        renglon('Envío', '<span class="num">' + gs(p.envio || 0) + '</span>') +
+        '<div class="renglon total"><dt>Total</dt><dd class="num">' + gs(p.total) + '</dd></div>' +
+      '</dl></div>' +
+      '<div class="bloque"><dl style="margin:0">' +
+        renglon('Teléfono', '<span class="mono">' + esc(p.telefono) + '</span>') +
+        renglon('Entregar en', esc(p.direccion || '—') + (p.ciudad ? ', ' + esc(p.ciudad) : '')) +
+        renglon('Zona', esc(p.zona || '—')) +
+        renglon('Vendedor', vend ? esc(vend.nombre) : '<span style="color:var(--tenue)">sin asignar</span>') +
+        (vend ? renglon('Comisión', '<span class="num">' + gs(comision) + '</span> · ' + pct(vend.comision)) : '') +
+        renglon('Creado', fecha(p.creado)) +
+      '</dl></div>' +
+      '<div class="botonera">' +
+        e.siguiente.map(function (s) {
+          var d = estadoDe(s);
+          var clase = (s === 'CANCELADO' || s === 'DEVUELTO') ? 'btn-peligro' : 'btn-primario';
+          return '<button class="btn ' + clase + ' btn-ancho" data-mover="' + esc(id) + '" data-a="' + s + '">Marcar como ' + d.nombre.toLowerCase() + '</button>';
+        }).join('') +
+        '<a class="btn btn-wa btn-ancho" href="' + enlaceWa(p.telefono, mensajePedido(p)) + '" target="_blank" rel="noopener noreferrer">Avisar al cliente</a>' +
+      '</div>' +
+      (e.siguiente.indexOf('CONFIRMADO') >= 0 ? '<p class="nota">Al confirmar se descuenta el stock y se cuenta la comisión.</p>' : '');
+
+    abreHoja(esc(p.cliente), html, { tipo: 'pedido', id: id });
+  }
+
+  function mensajePedido(p) {
+    var nombre = String(p.cliente || '').split(' ')[0];
+    if (p.estado === 'ENVIADO') return 'Hola ' + nombre + ', tu pedido ' + p.codigo + ' ya va en camino 🛵 Tené a mano ' + gs(p.total) + ' para pagar al recibir. ¡Gracias!';
+    if (p.estado === 'CONFIRMADO') return '¡Listo ' + nombre + '! ✅ Tu pedido ' + p.codigo + ' quedó confirmado por ' + gs(p.total) + '. Te aviso cuando salga a reparto.';
+    if (p.estado === 'ENTREGADO') return '¡Gracias por tu compra, ' + nombre + '! 💚 Cualquier cosa con ' + p.codigo + ', escribime.';
+    return 'Hola ' + nombre + ', te escribo por tu pedido ' + p.codigo + '.';
+  }
+
+  // Mover un pedido arrastra sus efectos: el stock sale al confirmar y vuelve
+  // si se cancela o se devuelve. Se marca en el propio pedido para no
+  // descontar dos veces, porque aquí no hay transacciones.
+  async function muevePedido(id, nuevo) {
+    var p = porId(datos.pedidos, id);
+    if (!p || !hayBase()) return;
+
+    var items = p.items || [];
+    var descontar = (nuevo === 'CONFIRMADO' && !p.stockDescontado);
+    var devolver = ((nuevo === 'CANCELADO' || nuevo === 'DEVUELTO') && p.stockDescontado);
+
+    if (descontar) {
+      var falta = items.filter(function (i) {
+        var prod = porId(datos.productos, i.productoId);
+        return !prod || (prod.stock || 0) < i.cantidad;
+      });
+      if (falta.length) { brindis('No hay stock suficiente de ' + falta[0].nombre); return; }
+    }
+
+    for (var k = 0; k < items.length; k++) {
+      var it = items[k];
+      var prod = porId(datos.productos, it.productoId);
+      if (!prod) continue;
+      var delta = descontar ? -it.cantidad : (devolver ? it.cantidad : 0);
+      if (delta) await guarda('productos', prod.id, sinId(prod, { stock: (prod.stock || 0) + delta }));
+    }
+
+    var cambios = {
+      estado: nuevo,
+      stockDescontado: descontar ? true : (devolver ? false : !!p.stockDescontado)
+    };
+    if (nuevo === 'ENTREGADO') {
+      cambios.entregadoAt = new Date().toISOString();
+      if (p.metodoPago === 'CONTRA_ENTREGA') cambios.cobrado = p.total;
+    }
+    if (await guarda('pedidos', id, sinId(p, cambios))) {
+      brindis('Pedido ' + estadoDe(nuevo).nombre.toLowerCase());
+      cierraHoja();
+    }
+  }
+
+  // === Vista: Entregas ====================================================
+  function pintaEntregas() {
+    var enCalle = datos.pedidos.filter(function (p) { return p.estado === 'CONFIRMADO' || p.estado === 'ENVIADO'; });
+    var hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+    var entregadasHoy = datos.pedidos.filter(function (p) {
+      return p.estado === 'ENTREGADO' && p.entregadoAt && new Date(p.entregadoAt) >= hoy;
+    });
+    var efectivo = entregadasHoy.reduce(function (s, p) { return s + (p.cobrado || 0); }, 0);
+    var porDespachar = datos.pedidos.filter(function (p) { return p.estado === 'CONFIRMADO'; });
+
+    document.getElementById('contEntregas').textContent = enCalle.length + ' en curso';
+    document.getElementById('entregasDatos').innerHTML = [
+      dato('Por despachar', String(porDespachar.length), 'confirmados sin salir'),
+      dato('En camino', String(enCalle.length - porDespachar.length), 'ya en la calle'),
+      dato('Entregadas hoy', String(entregadasHoy.length), 'desde las 00:00'),
+      dato('Efectivo del día', gs(efectivo), 'cobrado contra entrega')
+    ].join('');
+
+    document.getElementById('listaEntregas').innerHTML = enCalle.length
+      ? enCalle.map(function (p) {
+          var e = estadoDe(p.estado);
+          return '<button class="fila" data-pedido="' + esc(p.id) + '">' +
+            '<div class="fila__alto"><span class="fila__nombre">' + esc(p.cliente) + '</span>' +
+            '<span class="importe num">' + gs(p.total) + '</span></div>' +
+            '<div class="fila__pie"><span>' + esc(p.direccion || '') + '</span></div>' +
+            '<div class="fila__pie">' + pastilla(e.nombre, e.clase) +
+            (p.zona ? '<span>· ' + esc(p.zona) + '</span>' : '') +
+            '<span class="mono">· ' + esc(p.telefono) + '</span></div></button>';
+        }).join('')
+      : '<div class="vacio">No hay nada en la calle ahora mismo.</div>';
+  }
+
+  // === Vista: Inventario ==================================================
+  function pintaProductos() {
+    var prods = datos.productos.slice().sort(function (a, b) {
+      return String(a.nombre || '').localeCompare(String(b.nombre || ''), 'es');
+    });
+    var bajos = prods.filter(function (p) { return (p.stock || 0) <= (p.minimo || 0); });
+    var valor = prods.reduce(function (s, p) { return s + (p.costo || 0) * (p.stock || 0); }, 0);
+    var unidades = prods.reduce(function (s, p) { return s + (p.stock || 0); }, 0);
+
+    document.getElementById('contProductos').textContent = prods.length + ' productos';
+    document.getElementById('inventarioDatos').innerHTML = [
+      dato('Unidades', String(unidades), 'en depósito'),
+      dato('Bajo mínimo', String(bajos.length), bajos.length ? 'hay que reponer' : 'todo cubierto'),
+      dato('Valor al costo', gs(valor), 'plata parada'),
+      dato('Margen medio', prods.length ? pct(margenMedio(prods)) : '—', 'precio contra costo')
+    ].join('');
+
+    document.getElementById('listaProductos').innerHTML = prods.length
+      ? prods.map(function (p) {
+          var min = p.minimo || 0;
+          var bajo = (p.stock || 0) <= min;
+          var tope = Math.max(min * 3, p.stock || 0, 1);
+          return '<button class="fila" data-producto="' + esc(p.id) + '">' +
+            '<div class="fila__alto"><span class="fila__nombre">' + esc(p.nombre) + '</span>' +
+            '<span class="importe num">' + gs(p.precio) + '</span></div>' +
+            '<div class="fila__pie"><span class="mono">' + esc(p.sku || '') + '</span>' +
+            '<span>· ' + (p.stock || 0) + ' en stock</span>' +
+            '<span>· mínimo ' + min + '</span>' +
+            (bajo ? pastilla('Reponer', 'p-ambar') : '') + '</div>' +
+            barrita((p.stock || 0) / tope) + '</button>';
+        }).join('')
+      : '<div class="vacio">Todavía no cargaste productos.</div>';
+  }
+
+  function margenMedio(prods) {
+    var conCosto = prods.filter(function (p) { return p.precio > 0 && p.costo > 0; });
+    if (!conCosto.length) return 0;
+    var suma_ = conCosto.reduce(function (s, p) { return s + (p.precio - p.costo) / p.precio; }, 0);
+    return suma_ / conCosto.length;
+  }
+
+  function abreProducto(id) {
+    var p = porId(datos.productos, id);
+    if (!p) return cierraHoja();
+    var vendidas = datos.pedidos.filter(function (x) { return VENDIDOS.indexOf(x.estado) >= 0; })
+      .reduce(function (s, x) {
+        return s + (x.items || []).filter(function (i) { return i.productoId === id; })
+          .reduce(function (t, i) { return t + i.cantidad; }, 0);
+      }, 0);
+    var margen = p.precio > 0 && p.costo > 0 ? (p.precio - p.costo) / p.precio : 0;
+
+    var html =
+      '<div class="bloque"><dl style="margin:0">' +
+        renglon('Código', '<span class="mono">' + esc(p.sku || '—') + '</span>') +
+        renglon('Precio de venta', '<span class="num">' + gs(p.precio) + '</span>') +
+        renglon('Costo', '<span class="num">' + gs(p.costo || 0) + '</span>') +
+        renglon('Margen', pct(margen)) +
+        renglon('En stock', String(p.stock || 0) + ' u.') +
+        renglon('Mínimo', String(p.minimo || 0) + ' u.') +
+        renglon('Vendidas', String(vendidas) + ' u.') +
+      '</dl></div>' +
+      '<div class="par">' +
+        '<label class="campo"><span>Entra (+)</span><input id="entra" type="number" min="0" step="1" value="0" inputmode="numeric"></label>' +
+        '<label class="campo"><span>Sale (−)</span><input id="sale" type="number" min="0" step="1" value="0" inputmode="numeric"></label>' +
+      '</div>' +
+      '<label class="campo"><span>Motivo</span><input id="motivo" type="text" placeholder="Compra al proveedor, rotura, ajuste…"></label>' +
+      '<div class="botonera">' +
+        '<button class="btn btn-primario btn-ancho" data-mueve-stock="' + esc(id) + '">Registrar movimiento</button>' +
+        '<button class="btn btn-suave btn-ancho" data-edita-producto="' + esc(id) + '">Editar producto</button>' +
+      '</div>' +
+      (p.movimientos && p.movimientos.length
+        ? '<h4 class="subtitulo">Últimos movimientos</h4><div class="bloque"><dl style="margin:0">' +
+          p.movimientos.slice(-6).reverse().map(function (m) {
+            return renglon(fecha(m.cuando) + ' · ' + esc(m.motivo || 'ajuste'),
+              '<span class="num">' + (m.delta > 0 ? '+' : '') + m.delta + '</span>');
+          }).join('') + '</dl></div>'
+        : '') +
+      '<p class="nota">El stock nunca se escribe a mano: cada cambio queda con su motivo y su fecha.</p>';
+
+    abreHoja(p.nombre, html, { tipo: 'producto', id: id });
+  }
+
+  async function mueveStock(id) {
+    var p = porId(datos.productos, id);
+    if (!p || !hayBase()) return;
+    var entra = Number(document.getElementById('entra').value) || 0;
+    var sale = Number(document.getElementById('sale').value) || 0;
+    var delta = entra - sale;
+    if (!delta) { brindis('Poné una cantidad'); return; }
+    if ((p.stock || 0) + delta < 0) { brindis('No podés sacar más de lo que hay'); return; }
+    var motivo = (document.getElementById('motivo').value || '').trim() || (delta > 0 ? 'entrada' : 'salida');
+    var historial = (p.movimientos || []).concat([{ cuando: new Date().toISOString(), delta: delta, motivo: motivo }]);
+    if (await guarda('productos', id, sinId(p, { stock: (p.stock || 0) + delta, movimientos: historial.slice(-30) }))) {
+      brindis('Stock: ' + ((p.stock || 0) + delta) + ' u.');
+      cierraHoja();
+    }
+  }
+
+  function formProducto(id) {
+    var p = id ? porId(datos.productos, id) : null;
+    var html =
+      '<label class="campo"><span>Nombre</span><input id="pNombre" type="text" value="' + esc(p ? p.nombre : '') + '" placeholder="Auriculares inalámbricos"></label>' +
+      '<label class="campo"><span>Código interno</span><input id="pSku" type="text" value="' + esc(p ? p.sku : '') + '" placeholder="AUR-001"></label>' +
+      '<div class="par">' +
+        '<label class="campo"><span>Precio (Gs)</span><input id="pPrecio" type="number" min="0" step="1000" inputmode="numeric" value="' + (p ? p.precio : '') + '"></label>' +
+        '<label class="campo"><span>Costo (Gs)</span><input id="pCosto" type="number" min="0" step="1000" inputmode="numeric" value="' + (p ? (p.costo || 0) : '') + '"></label>' +
+      '</div>' +
+      '<div class="par">' +
+        '<label class="campo"><span>Stock inicial</span><input id="pStock" type="number" min="0" step="1" inputmode="numeric" value="' + (p ? (p.stock || 0) : 0) + '"' + (p ? ' disabled' : '') + '></label>' +
+        '<label class="campo"><span>Mínimo</span><input id="pMinimo" type="number" min="0" step="1" inputmode="numeric" value="' + (p ? (p.minimo || 0) : 3) + '"></label>' +
+      '</div>' +
+      (p ? '<p class="nota">El stock se cambia con un movimiento, no editando el número.</p>' : '') +
+      '<div class="botonera"><button class="btn btn-primario btn-ancho" data-guarda-producto="' + esc(id || '') + '">Guardar</button></div>';
+    abreHoja(p ? 'Editar producto' : 'Nuevo producto', html, { tipo: 'formProducto', id: id || null });
+  }
+
+  async function guardaProducto(id) {
+    var nombre = (document.getElementById('pNombre').value || '').trim();
+    var precio = Number(document.getElementById('pPrecio').value) || 0;
+    if (!nombre) { brindis('Falta el nombre'); return; }
+    if (precio <= 0) { brindis('Poné un precio'); return; }
+    var campos = {
+      nombre: nombre,
+      sku: (document.getElementById('pSku').value || '').trim(),
+      precio: Math.round(precio),
+      costo: Math.round(Number(document.getElementById('pCosto').value) || 0),
+      minimo: Math.round(Number(document.getElementById('pMinimo').value) || 0)
+    };
+    var ok;
+    if (id) {
+      ok = await guarda('productos', id, sinId(porId(datos.productos, id) || {}, campos));
+    } else {
+      var stock = Math.round(Number(document.getElementById('pStock').value) || 0);
+      campos.stock = stock;
+      campos.creado = new Date().toISOString();
+      campos.movimientos = stock ? [{ cuando: campos.creado, delta: stock, motivo: 'carga inicial' }] : [];
+      ok = await agrega('productos', campos);
+    }
+    if (ok) { brindis(id ? 'Producto actualizado' : 'Producto agregado'); cierraHoja(); }
+  }
+
+  // === Vista: Campañas ====================================================
+  // Sin TikTok Shop en Paraguay la atribución se hace a mano: cada vivo o aviso
+  // es una campaña y los prospectos que llegan se cuelgan de ella.
+  function resumenCampana(c) {
+    var suyos = datos.prospectos.filter(function (l) { return l.campanaId === c.id; });
+    var ganados = suyos.filter(function (l) { return l.estado === 'GANADO'; });
+    var ingresos = ingresosDeCampana(c.id);
+    var inversion = c.inversion || 0;
+    return {
+      prospectos: suyos.length,
+      ganados: ganados.length,
+      ingresos: ingresos,
+      inversion: inversion,
+      costoPorProspecto: suyos.length ? Math.round(inversion / suyos.length) : 0,
+      retorno: inversion > 0 ? ingresos / inversion : null,
+      conversion: suyos.length ? ganados.length / suyos.length : 0
+    };
+  }
+
+  function pintaCampanas() {
+    var camps = datos.campanas.slice().sort(function (a, b) {
+      return String(b.fecha || '').localeCompare(String(a.fecha || ''));
+    });
+    var invertido = suma(camps, 'inversion');
+    var generado = camps.reduce(function (s, c) { return s + ingresosDeCampana(c.id); }, 0);
+    var atribuidos = datos.prospectos.filter(function (l) { return !!l.campanaId; }).length;
+
+    document.getElementById('contCampanas').textContent = camps.length + ' registradas';
+    document.getElementById('campanasDatos').innerHTML = [
+      dato('Invertido', gs(invertido), 'en avisos'),
+      dato('Generado', gs(generado), 'ventas atribuidas'),
+      dato('Retorno', invertido > 0 ? (generado / invertido).toFixed(1) + '×' : '—', 'por cada guaraní'),
+      dato('Prospectos', String(atribuidos), 'con origen conocido')
+    ].join('');
+
+    document.getElementById('listaCampanas').innerHTML = camps.length
+      ? camps.map(function (c) {
+          var r = resumenCampana(c);
+          var t = tipoCampanaDe(c.tipo);
+          return '<button class="fila" data-campana="' + esc(c.id) + '">' +
+            '<div class="fila__alto"><span class="fila__nombre">' + esc(c.nombre) + '</span>' +
+            '<span class="importe num">' + gs(r.ingresos) + '</span></div>' +
+            '<div class="fila__pie">' + pastilla(t.nombre, t.clase) +
+            '<span>· ' + fecha(c.fecha) + '</span>' +
+            '<span>· ' + r.prospectos + ' prospectos</span>' +
+            (r.retorno != null ? pastilla(r.retorno.toFixed(1) + '× retorno', r.retorno >= 1 ? 'p-verde' : 'p-rojo') : '') +
+            '</div></button>';
+        }).join('')
+      : '<div class="vacio">Anotá cada vivo y cada aviso para saber cuál trae ventas.</div>';
+  }
+
+  function abreCampana(id) {
+    var c = porId(datos.campanas, id);
+    if (!c) return cierraHoja();
+    var r = resumenCampana(c);
+    var t = tipoCampanaDe(c.tipo);
+    var suyos = datos.prospectos.filter(function (l) { return l.campanaId === id; });
+
+    var html =
+      '<p style="margin-bottom:.8rem">' + pastilla(t.nombre, t.clase) +
+        ' <span style="color:var(--tenue);font-size:.82rem">' + fecha(c.fecha) + '</span></p>' +
+      '<div class="rejilla">' +
+        dato('Prospectos', String(r.prospectos), 'que dejaron número') +
+        dato('Ganados', String(r.ganados), pct(r.conversion) + ' de conversión') +
+        dato('Ingresos', gs(r.ingresos), 'pedidos atribuidos') +
+        dato('Retorno', r.retorno != null ? r.retorno.toFixed(1) + '×' : '—', 'sobre ' + gs(r.inversion)) +
+      '</div>' +
+      '<div class="bloque" style="margin-top:.75rem"><dl style="margin:0">' +
+        renglon('Inversión', '<span class="num">' + gs(r.inversion) + '</span>') +
+        renglon('Costo por prospecto', '<span class="num">' + (r.prospectos ? gs(r.costoPorProspecto) : '—') + '</span>') +
+        (c.notas ? renglon('Notas', esc(c.notas)) : '') +
+      '</dl></div>' +
+      (suyos.length
+        ? '<h4 class="subtitulo">Prospectos que trajo</h4><div class="lista">' + suyos.map(filaProspecto).join('') + '</div>'
+        : '<div class="vacio">Todavía nadie escribió por esta campaña.</div>') +
+      '<div class="botonera"><button class="btn btn-suave btn-ancho" data-edita-campana="' + esc(id) + '">Editar campaña</button></div>';
+
+    abreHoja(c.nombre, html, { tipo: 'campana', id: id });
+  }
+
+  function formCampana(id) {
+    var c = id ? porId(datos.campanas, id) : null;
+    var hoy = new Date().toISOString().slice(0, 10);
+    var html =
+      '<label class="campo"><span>Nombre</span><input id="cNombre" type="text" value="' + esc(c ? c.nombre : '') + '" placeholder="Vivo del viernes · ofertas"></label>' +
+      '<div class="par">' +
+        '<label class="campo"><span>Tipo</span><select id="cTipo">' +
+          TIPOS_CAMPANA.map(function (t) { return '<option value="' + t.id + '"' + (c && c.tipo === t.id ? ' selected' : '') + '>' + t.nombre + '</option>'; }).join('') +
+        '</select></label>' +
+        '<label class="campo"><span>Fecha</span><input id="cFecha" type="date" value="' + esc(c && c.fecha ? String(c.fecha).slice(0, 10) : hoy) + '"></label>' +
+      '</div>' +
+      '<label class="campo"><span>Inversión en Gs</span><input id="cInversion" type="number" min="0" step="10000" inputmode="numeric" value="' + (c ? (c.inversion || 0) : 0) + '"></label>' +
+      '<label class="campo"><span>Notas</span><textarea id="cNotas" rows="3" placeholder="Qué se mostró, qué funcionó">' + esc(c ? c.notas : '') + '</textarea></label>' +
+      '<div class="botonera"><button class="btn btn-primario btn-ancho" data-guarda-campana="' + esc(id || '') + '">Guardar</button></div>' +
+      '<p class="nota">Un vivo sin inversión también sirve: mide cuántos prospectos trajo.</p>';
+    abreHoja(c ? 'Editar campaña' : 'Nueva campaña', html, { tipo: 'formCampana', id: id || null });
+  }
+
+  async function guardaCampana(id) {
+    var nombre = (document.getElementById('cNombre').value || '').trim();
+    if (!nombre) { brindis('Falta el nombre'); return; }
+    var campos = {
+      nombre: nombre,
+      tipo: document.getElementById('cTipo').value,
+      fecha: document.getElementById('cFecha').value || new Date().toISOString().slice(0, 10),
+      inversion: Math.round(Number(document.getElementById('cInversion').value) || 0),
+      notas: (document.getElementById('cNotas').value || '').trim()
+    };
+    var ok = id
+      ? await guarda('campanas', id, sinId(porId(datos.campanas, id) || {}, campos))
+      : await agrega('campanas', Object.assign({ creado: new Date().toISOString() }, campos));
+    if (ok) { brindis(id ? 'Campaña actualizada' : 'Campaña creada'); cierraHoja(); }
+  }
+
+  // === Vista: Equipo ======================================================
+  var ROLES = [
+    { id: 'VENDEDOR', nombre: 'Vendedor', clase: 'p-acento' },
+    { id: 'LIDER', nombre: 'Líder de ventas', clase: 'p-azul' },
+    { id: 'REPARTIDOR', nombre: 'Repartidor', clase: 'p-ambar' },
+    { id: 'ALMACEN', nombre: 'Almacén', clase: 'p-morado' },
+    { id: 'ADMIN', nombre: 'Administración', clase: 'p-gris' }
+  ];
+  function rolDe(id) { return busca(ROLES, id); }
+
+  // La comisión sigue al pedido: nace al confirmar, se aprueba al entregar y
+  // se cae si el pedido se cancela o se devuelve.
+  function comisionesDe(vendedorId) {
+    var suyos = datos.pedidos.filter(function (p) { return p.vendedorId === vendedorId; });
+    var aprobada = 0, pendiente = 0, anulada = 0, vendidos = 0, ingresos = 0;
+    suyos.forEach(function (p) {
+      var c = comisionDe(p);
+      if (p.estado === 'ENTREGADO') { aprobada += c; vendidos++; ingresos += p.total || 0; }
+      else if (p.estado === 'CONFIRMADO' || p.estado === 'ENVIADO') { pendiente += c; vendidos++; ingresos += p.total || 0; }
+      else if (p.estado === 'CANCELADO' || p.estado === 'DEVUELTO') { anulada += c; }
+    });
+    return { aprobada: aprobada, pendiente: pendiente, anulada: anulada, vendidos: vendidos, ingresos: ingresos, pedidos: suyos.length };
+  }
+
+  function pintaEquipo() {
+    var gente = datos.equipo.slice().sort(function (a, b) {
+      return comisionesDe(b.id).ingresos - comisionesDe(a.id).ingresos;
+    });
+    document.getElementById('contEquipo').textContent = gente.length + ' personas';
+
+    var tope = Math.max.apply(null, [1].concat(gente.map(function (v) { return comisionesDe(v.id).ingresos; })));
+    document.getElementById('listaEquipo').innerHTML = gente.length
+      ? gente.map(function (v) {
+          var c = comisionesDe(v.id);
+          var r = rolDe(v.rol);
+          var prosp = datos.prospectos.filter(function (l) { return l.vendedorId === v.id; }).length;
+          return '<button class="fila" data-vendedor="' + esc(v.id) + '">' +
+            '<div class="fila__alto"><span class="fila__nombre">' + esc(v.nombre) +
+            (v.activo === false ? ' <span style="color:var(--tenue);font-weight:400">· inactivo</span>' : '') + '</span>' +
+            '<span class="importe num">' + gs(c.ingresos) + '</span></div>' +
+            '<div class="fila__pie">' + pastilla(r.nombre, r.clase) +
+            '<span>· ' + c.vendidos + ' ventas</span>' +
+            '<span>· ' + prosp + ' prospectos</span>' +
+            (c.aprobada + c.pendiente > 0 ? '<span>· ' + gs(c.aprobada + c.pendiente) + ' de comisión</span>' : '') +
+            '</div>' + barrita(c.ingresos / tope, true) + '</button>';
+        }).join('')
+      : '<div class="vacio">Agregá a quien atiende, reparte o cobra.</div>';
+  }
+
+  function abreVendedor(id) {
+    var v = porId(datos.equipo, id);
+    if (!v) return cierraHoja();
+    var c = comisionesDe(id);
+    var r = rolDe(v.rol);
+    var suyos = datos.pedidos.filter(function (p) { return p.vendedorId === id; })
+      .sort(function (a, b) { return String(b.creado || '').localeCompare(String(a.creado || '')); });
+
+    var html =
+      '<p style="margin-bottom:.8rem">' + pastilla(r.nombre, r.clase) +
+        (v.activo === false ? ' ' + pastilla('Inactivo', 'p-rojo') : '') + '</p>' +
+      '<div class="rejilla">' +
+        dato('Vendido', gs(c.ingresos), c.vendidos + ' pedidos') +
+        dato('Comisión a pagar', gs(c.aprobada), 'ya entregados') +
+        dato('En curso', gs(c.pendiente), 'aún no entregados') +
+        dato('Tasa', pct(v.comision || 0), 'sobre el producto') +
+      '</div>' +
+      '<div class="bloque" style="margin-top:.75rem"><dl style="margin:0">' +
+        renglon('Teléfono', '<span class="mono">' + esc(v.telefono || '—') + '</span>') +
+        renglon('Entró', fecha(v.ingreso || v.creado)) +
+        (c.anulada ? renglon('Comisión caída', '<span class="num">' + gs(c.anulada) + '</span>') : '') +
+      '</dl></div>' +
+      (v.telefono ? '<a class="btn btn-wa btn-ancho" href="' + enlaceWa(v.telefono, 'Hola ' + String(v.nombre || '').split(' ')[0] + ', te paso el resumen del día.') + '" target="_blank" rel="noopener noreferrer">Escribirle por WhatsApp</a>' : '') +
+      (suyos.length
+        ? '<h4 class="subtitulo">Sus pedidos</h4><div class="lista">' + suyos.slice(0, 8).map(filaPedido).join('') + '</div>'
+        : '<div class="vacio">Todavía no tiene pedidos a su nombre.</div>') +
+      '<div class="botonera"><button class="btn btn-suave btn-ancho" data-edita-vendedor="' + esc(id) + '">Editar</button></div>' +
+      '<p class="nota">La comisión se calcula sobre el producto, sin el envío.</p>';
+
+    abreHoja(v.nombre, html, { tipo: 'vendedor', id: id });
+  }
+
+  function formVendedor(id) {
+    var v = id ? porId(datos.equipo, id) : null;
+    var html =
+      '<label class="campo"><span>Nombre</span><input id="vNombre" type="text" value="' + esc(v ? v.nombre : '') + '" placeholder="Ana Giménez"></label>' +
+      '<div class="par">' +
+        '<label class="campo"><span>Rol</span><select id="vRol">' +
+          ROLES.map(function (r) { return '<option value="' + r.id + '"' + (v && v.rol === r.id ? ' selected' : '') + '>' + r.nombre + '</option>'; }).join('') +
+        '</select></label>' +
+        '<label class="campo"><span>Comisión %</span><input id="vComision" type="number" min="0" max="100" step="1" inputmode="numeric" value="' + (v ? Math.round((v.comision || 0) * 100) : 10) + '"></label>' +
+      '</div>' +
+      '<label class="campo"><span>WhatsApp</span><input id="vTelefono" type="tel" inputmode="tel" value="' + esc(v ? v.telefono : '') + '" placeholder="0981 123 456"></label>' +
+      (v ? '<label class="campo"><span>Estado</span><select id="vActivo">' +
+        '<option value="si"' + (v.activo !== false ? ' selected' : '') + '>Activo</option>' +
+        '<option value="no"' + (v.activo === false ? ' selected' : '') + '>Inactivo</option></select></label>' : '') +
+      '<div class="botonera"><button class="btn btn-primario btn-ancho" data-guarda-vendedor="' + esc(id || '') + '">Guardar</button></div>';
+    abreHoja(v ? 'Editar persona' : 'Agregar a alguien', html, { tipo: 'formVendedor', id: id || null });
+  }
+
+  async function guardaVendedor(id) {
+    var nombre = (document.getElementById('vNombre').value || '').trim();
+    if (!nombre) { brindis('Falta el nombre'); return; }
+    var activoSel = document.getElementById('vActivo');
+    var campos = {
+      nombre: nombre,
+      rol: document.getElementById('vRol').value,
+      comision: Math.min(100, Math.max(0, Number(document.getElementById('vComision').value) || 0)) / 100,
+      telefono: (document.getElementById('vTelefono').value || '').trim(),
+      activo: activoSel ? activoSel.value === 'si' : true
+    };
+    var ok = id
+      ? await guarda('equipo', id, sinId(porId(datos.equipo, id) || {}, campos))
+      : await agrega('equipo', Object.assign({ ingreso: new Date().toISOString() }, campos));
+    if (ok) { brindis(id ? 'Datos actualizados' : 'Persona agregada'); cierraHoja(); }
+  }
+
+  // === Vista: Plantillas ==================================================
+  var VARIABLES = ['cliente', 'producto', 'precio', 'ciudad', 'pedido'];
+
+  function pintaPlantillas() {
+    var lista = datos.plantillas.slice().sort(function (a, b) {
+      return ETAPAS.map(function (e) { return e.id; }).indexOf(a.etapa) -
+             ETAPAS.map(function (e) { return e.id; }).indexOf(b.etapa);
+    });
+    document.getElementById('contPlantillas').textContent = lista.length + ' mensajes';
+    document.getElementById('listaPlantillas').innerHTML = lista.length
+      ? lista.map(function (t) {
+          var e = etapaDe(t.etapa);
+          return '<button class="fila" data-plantilla="' + esc(t.id) + '">' +
+            '<div class="fila__alto"><span class="fila__nombre">' + esc(t.nombre) + '</span>' +
+            pastilla(e.nombre, e.clase) + '</div>' +
+            '<div class="fila__pie" style="display:block;white-space:normal">' +
+            esc(String(t.cuerpo || '').slice(0, 120)) + (String(t.cuerpo || '').length > 120 ? '…' : '') +
+            '</div></button>';
+        }).join('')
+      : '<div class="vacio">Escribí una vez lo que repetís todos los días.</div>';
+  }
+
+  function abrePlantilla(id) {
+    var t = porId(datos.plantillas, id);
+    if (!t) return cierraHoja();
+    var e = etapaDe(t.etapa);
+    var ejemplo = rellena(t.cuerpo, {
+      cliente: 'María', producto: 'Auriculares inalámbricos',
+      precio: gs(185000), ciudad: 'Asunción', pedido: 'CY-0007'
+    });
+    var html =
+      '<p style="margin-bottom:.8rem">' + pastilla('Para ' + e.nombre.toLowerCase(), e.clase) + '</p>' +
+      '<div class="bloque" style="white-space:pre-wrap">' + esc(t.cuerpo) + '</div>' +
+      '<h4 class="subtitulo">Cómo se ve con datos</h4>' +
+      '<div class="bloque" style="white-space:pre-wrap">' + esc(ejemplo) + '</div>' +
+      '<div class="botonera">' +
+        '<button class="btn btn-suave btn-ancho" data-edita-plantilla="' + esc(id) + '">Editar</button>' +
+        '<button class="btn btn-peligro btn-ancho" data-borra-plantilla="' + esc(id) + '">Borrar</button>' +
+      '</div>';
+    abreHoja(t.nombre, html, { tipo: 'plantilla', id: id });
+  }
+
+  function formPlantilla(id) {
+    var t = id ? porId(datos.plantillas, id) : null;
+    var html =
+      '<label class="campo"><span>Nombre</span><input id="tNombre" type="text" value="' + esc(t ? t.nombre : '') + '" placeholder="Primer saludo"></label>' +
+      '<label class="campo"><span>Se sugiere en la etapa</span><select id="tEtapa">' +
+        ETAPAS.map(function (e) { return '<option value="' + e.id + '"' + (t && t.etapa === e.id ? ' selected' : '') + '>' + e.nombre + '</option>'; }).join('') +
+      '</select></label>' +
+      '<label class="campo"><span>Mensaje</span><textarea id="tCuerpo" rows="6" placeholder="¡Hola {{cliente}}! Te escribo por {{producto}}…">' + esc(t ? t.cuerpo : '') + '</textarea></label>' +
+      '<p class="nota">Podés usar: ' + VARIABLES.map(function (v) { return '<code class="mono">{{' + v + '}}</code>'; }).join(' ') + '</p>' +
+      '<div class="botonera"><button class="btn btn-primario btn-ancho" data-guarda-plantilla="' + esc(id || '') + '">Guardar</button></div>';
+    abreHoja(t ? 'Editar plantilla' : 'Nueva plantilla', html, { tipo: 'formPlantilla', id: id || null });
+  }
+
+  async function guardaPlantilla(id) {
+    var nombre = (document.getElementById('tNombre').value || '').trim();
+    var cuerpo = (document.getElementById('tCuerpo').value || '').trim();
+    if (!nombre || !cuerpo) { brindis('Falta el nombre o el mensaje'); return; }
+    var campos = { nombre: nombre, etapa: document.getElementById('tEtapa').value, cuerpo: cuerpo };
+    var ok = id
+      ? await guarda('plantillas', id, sinId(porId(datos.plantillas, id) || {}, campos))
+      : await agrega('plantillas', Object.assign({ creado: new Date().toISOString() }, campos));
+    if (ok) { brindis(id ? 'Plantilla actualizada' : 'Plantilla creada'); cierraHoja(); }
+  }
+
+  async function borraPlantilla(id) {
+    if (!hayBase()) return;
+    var ref = base.doc('plantillas/' + id);
+    if (typeof ref.delete !== 'function') { brindis('Aquí no se puede borrar'); return; }
+    try { await ref.delete(); brindis('Plantilla borrada'); cierraHoja(); }
+    catch (err) { brindis('No se pudo borrar'); }
+  }
+
+  // === Alta de prospecto ==================================================
+  function formProspecto() {
+    var html =
+      '<label class="campo"><span>Nombre</span><input id="nNombre" type="text" placeholder="María Fernández"></label>' +
+      '<div class="par">' +
+        '<label class="campo"><span>WhatsApp</span><input id="nTelefono" type="tel" inputmode="tel" placeholder="0981 123 456"></label>' +
+        '<label class="campo"><span>Ciudad</span><input id="nCiudad" type="text" placeholder="Asunción"></label>' +
+      '</div>' +
+      '<div class="par">' +
+        '<label class="campo"><span>Le interesa</span><select id="nProducto"><option value="">—</option>' +
+          datos.productos.map(function (p) { return '<option value="' + esc(p.id) + '">' + esc(p.nombre) + '</option>'; }).join('') +
+        '</select></label>' +
+        '<label class="campo"><span>Vino de</span><select id="nCampana"><option value="">—</option>' +
+          datos.campanas.map(function (c) { return '<option value="' + esc(c.id) + '">' + esc(c.nombre) + '</option>'; }).join('') +
+        '</select></label>' +
+      '</div>' +
+      '<label class="campo"><span>Responsable</span><select id="nVendedor"><option value="">Sin asignar</option>' +
+        datos.equipo.filter(function (v) { return v.activo !== false; })
+          .map(function (v) { return '<option value="' + esc(v.id) + '">' + esc(v.nombre) + '</option>'; }).join('') +
+      '</select></label>' +
+      '<label class="campo"><span>Notas</span><textarea id="nNotas" rows="3" placeholder="Qué preguntó, qué le dijiste"></textarea></label>' +
+      '<div class="botonera"><button class="btn btn-primario btn-ancho" data-guarda-prospecto="1">Guardar prospecto</button></div>';
+    abreHoja('Nuevo prospecto', html, { tipo: 'formProspecto' });
+  }
+
+  async function guardaProspecto() {
+    var nombre = (document.getElementById('nNombre').value || '').trim();
+    var telefono = (document.getElementById('nTelefono').value || '').trim();
+    if (!nombre) { brindis('Falta el nombre'); return; }
+    if (!telefono) { brindis('Falta el WhatsApp'); return; }
+    var ok = await agrega('prospectos', {
+      nombre: nombre,
+      telefono: telefono,
+      ciudad: (document.getElementById('nCiudad').value || '').trim(),
+      productoId: document.getElementById('nProducto').value || '',
+      campanaId: document.getElementById('nCampana').value || '',
+      vendedorId: document.getElementById('nVendedor').value || '',
+      notas: (document.getElementById('nNotas').value || '').trim(),
+      estado: 'NUEVO',
+      creado: new Date().toISOString()
+    });
+    if (ok) { brindis('Prospecto guardado'); cierraHoja(); }
+  }
+
+  // === Alta de pedido =====================================================
+  function proximoCodigo() {
+    var n = datos.pedidos.reduce(function (max, p) {
+      var m = /CY-(\d+)/.exec(String(p.codigo || ''));
+      return m ? Math.max(max, Number(m[1])) : max;
+    }, 0);
+    return 'CY-' + String(n + 1).padStart(4, '0');
+  }
+
+  function formPedido(prospectoId) {
+    var l = porId(datos.prospectos, prospectoId);
+    if (!l) { brindis('No encuentro el prospecto'); return; }
+    if (!datos.productos.length) { brindis('Cargá un producto primero'); return; }
+    var elegido = l.productoId && porId(datos.productos, l.productoId) ? l.productoId : datos.productos[0].id;
+    var zonaPorCiudad = ZONAS.filter(function (z) { return z.nombre === l.ciudad; })[0] || ZONAS[0];
+
+    var html =
+      '<div class="par">' +
+        '<label class="campo"><span>Producto</span><select id="oProducto">' +
+          datos.productos.map(function (p) {
+            return '<option value="' + esc(p.id) + '"' + (p.id === elegido ? ' selected' : '') + '>' +
+              esc(p.nombre) + ' · ' + gs(p.precio) + ' (' + (p.stock || 0) + ')</option>';
+          }).join('') +
+        '</select></label>' +
+        '<label class="campo"><span>Cantidad</span><input id="oCantidad" type="number" min="1" step="1" value="1" inputmode="numeric"></label>' +
+      '</div>' +
+      '<label class="campo"><span>Dirección de entrega</span><input id="oDireccion" type="text" placeholder="Calle, número, referencia"></label>' +
+      '<div class="par">' +
+        '<label class="campo"><span>Zona</span><select id="oZona">' +
+          ZONAS.map(function (z) {
+            return '<option value="' + esc(z.nombre) + '"' + (z.nombre === zonaPorCiudad.nombre ? ' selected' : '') + '>' +
+              esc(z.nombre) + ' · ' + gs(z.costo) + '</option>';
+          }).join('') +
+        '</select></label>' +
+        '<label class="campo"><span>Pago</span><select id="oPago">' +
+          PAGOS.map(function (m) { return '<option value="' + m.id + '">' + m.nombre + '</option>'; }).join('') +
+        '</select></label>' +
+      '</div>' +
+      '<label class="campo"><span>Vendedor</span><select id="oVendedor"><option value="">Sin asignar</option>' +
+        datos.equipo.filter(function (v) { return v.activo !== false; }).map(function (v) {
+          return '<option value="' + esc(v.id) + '"' + (v.id === l.vendedorId ? ' selected' : '') + '>' + esc(v.nombre) + '</option>';
+        }).join('') +
+      '</select></label>' +
+      '<div class="bloque"><dl style="margin:0" id="oResumen"></dl></div>' +
+      '<div class="botonera"><button class="btn btn-primario btn-ancho" data-guarda-pedido="' + esc(prospectoId) + '">Crear pedido</button></div>' +
+      '<p class="nota">Nace pendiente. El stock recién sale cuando lo confirmás.</p>';
+
+    abreHoja('Pedido de ' + l.nombre, html, { tipo: 'formPedido', id: prospectoId });
+
+    function refrescaResumen() {
+      var c = cuentaPedido();
+      document.getElementById('oResumen').innerHTML =
+        renglon(c.cantidad + ' × ' + esc(c.producto.nombre), '<span class="num">' + gs(c.subtotal) + '</span>') +
+        renglon('Envío · ' + esc(c.zona.nombre), '<span class="num">' + gs(c.envio) + '</span>') +
+        (c.comision ? renglon('Comisión del vendedor', '<span class="num">' + gs(c.comision) + '</span>') : '') +
+        '<div class="renglon total"><dt>Total</dt><dd class="num">' + gs(c.total) + '</dd></div>' +
+        (c.producto.stock < c.cantidad
+          ? '<p class="nota" style="color:var(--ambar)">Sólo hay ' + (c.producto.stock || 0) + ' en stock.</p>' : '');
+    }
+    ['oProducto', 'oCantidad', 'oZona', 'oVendedor'].forEach(function (idc) {
+      document.getElementById(idc).addEventListener('input', refrescaResumen);
+      document.getElementById(idc).addEventListener('change', refrescaResumen);
+    });
+    refrescaResumen();
+  }
+
+  function cuentaPedido() {
+    var producto = porId(datos.productos, document.getElementById('oProducto').value) || datos.productos[0];
+    var cantidad = Math.max(1, Math.round(Number(document.getElementById('oCantidad').value) || 1));
+    var zona = ZONAS.filter(function (z) { return z.nombre === document.getElementById('oZona').value; })[0] || ZONAS[0];
+    var subtotal = (producto.precio || 0) * cantidad;
+    var vend = porId(datos.equipo, document.getElementById('oVendedor').value);
+    return {
+      producto: producto, cantidad: cantidad, zona: zona,
+      subtotal: subtotal, envio: zona.costo, total: subtotal + zona.costo,
+      vendedorId: vend ? vend.id : '',
+      comision: vend ? Math.round(subtotal * (Number(vend.comision) || 0)) : 0
+    };
+  }
+
+  async function guardaPedido(prospectoId) {
+    var l = porId(datos.prospectos, prospectoId);
+    if (!l || !hayBase()) return;
+    var c = cuentaPedido();
+    var direccion = (document.getElementById('oDireccion').value || '').trim();
+    if (!direccion) { brindis('Falta la dirección'); return; }
+
+    var ok = await agrega('pedidos', {
+      codigo: proximoCodigo(),
+      prospectoId: prospectoId,
+      cliente: l.nombre,
+      telefono: l.telefono,
+      ciudad: l.ciudad || '',
+      direccion: direccion,
+      zona: c.zona.nombre,
+      items: [{ productoId: c.producto.id, nombre: c.producto.nombre, precio: c.producto.precio, cantidad: c.cantidad }],
+      envio: c.envio,
+      total: c.total,
+      metodoPago: document.getElementById('oPago').value,
+      vendedorId: c.vendedorId,
+      estado: 'PENDIENTE',
+      stockDescontado: false,
+      creado: new Date().toISOString()
+    });
+    if (!ok) return;
+    // Un prospecto con pedido ya está ganado: la etapa lo sigue sola.
+    if (l.estado !== 'GANADO') await guarda('prospectos', prospectoId, sinId(l, { estado: 'GANADO' }));
+    brindis('Pedido creado');
+    cierraHoja();
+    vamosA('pedidos');
+  }
+
+  // === Eventos ============================================================
+  document.addEventListener('click', function (e) {
+    var t;
+    if ((t = e.target.closest('[data-mover]'))) return muevePedido(t.getAttribute('data-mover'), t.getAttribute('data-a'));
+    if ((t = e.target.closest('[data-nuevo-pedido]'))) return formPedido(t.getAttribute('data-nuevo-pedido'));
+    if ((t = e.target.closest('[data-mueve-stock]'))) return mueveStock(t.getAttribute('data-mueve-stock'));
+
+    if ((t = e.target.closest('[data-edita-producto]'))) return formProducto(t.getAttribute('data-edita-producto'));
+    if ((t = e.target.closest('[data-edita-campana]'))) return formCampana(t.getAttribute('data-edita-campana'));
+    if ((t = e.target.closest('[data-edita-vendedor]'))) return formVendedor(t.getAttribute('data-edita-vendedor'));
+    if ((t = e.target.closest('[data-edita-plantilla]'))) return formPlantilla(t.getAttribute('data-edita-plantilla'));
+    if ((t = e.target.closest('[data-borra-plantilla]'))) return borraPlantilla(t.getAttribute('data-borra-plantilla'));
+
+    if ((t = e.target.closest('[data-guarda-prospecto]'))) return guardaProspecto();
+    if ((t = e.target.closest('[data-guarda-pedido]'))) return guardaPedido(t.getAttribute('data-guarda-pedido'));
+    if ((t = e.target.closest('[data-guarda-producto]'))) return guardaProducto(t.getAttribute('data-guarda-producto') || null);
+    if ((t = e.target.closest('[data-guarda-campana]'))) return guardaCampana(t.getAttribute('data-guarda-campana') || null);
+    if ((t = e.target.closest('[data-guarda-vendedor]'))) return guardaVendedor(t.getAttribute('data-guarda-vendedor') || null);
+    if ((t = e.target.closest('[data-guarda-plantilla]'))) return guardaPlantilla(t.getAttribute('data-guarda-plantilla') || null);
+
+    if ((t = e.target.closest('[data-prospecto]'))) return abreProspecto(t.getAttribute('data-prospecto'));
+    if ((t = e.target.closest('[data-pedido]'))) return abrePedido(t.getAttribute('data-pedido'));
+    if ((t = e.target.closest('[data-producto]'))) return abreProducto(t.getAttribute('data-producto'));
+    if ((t = e.target.closest('[data-campana]'))) return abreCampana(t.getAttribute('data-campana'));
+    if ((t = e.target.closest('[data-vendedor]'))) return abreVendedor(t.getAttribute('data-vendedor'));
+    if ((t = e.target.closest('[data-plantilla]'))) return abrePlantilla(t.getAttribute('data-plantilla'));
+
+    if ((t = e.target.closest('[data-fp]'))) { filtro.prospectos = t.getAttribute('data-fp'); return pintaProspectos(); }
+    if ((t = e.target.closest('[data-fpe]'))) { filtro.pedidos = t.getAttribute('data-fpe'); return pintaPedidos(); }
+  });
+
+  document.getElementById('btnNuevoProspecto').addEventListener('click', function () { formProspecto(); });
+  document.getElementById('btnNuevoProducto').addEventListener('click', function () { formProducto(null); });
+  document.getElementById('btnNuevaCampana').addEventListener('click', function () { formCampana(null); });
+  document.getElementById('btnNuevoVendedor').addEventListener('click', function () { formVendedor(null); });
+  document.getElementById('btnNuevaPlantilla').addEventListener('click', function () { formPlantilla(null); });
+
+  // === Pintado general ====================================================
+  // No se redibuja la hoja abierta: el usuario puede estar escribiendo dentro.
+  function pintaTodo() {
+    pintaHoy();
+    pintaProspectos();
+    pintaPedidos();
+    pintaEntregas();
+    pintaProductos();
+    pintaCampanas();
+    pintaEquipo();
+    pintaPlantillas();
+    pintaMenuMas();
+  }
+
+  // === Almacenamiento =====================================================
+  // La página se dibuja primero y se conecta después: si la capacidad no
+  // llega, sigue siendo legible y avisa en lugar de quedarse en blanco.
+  function documentos(snap) {
+    return snap.docs.map(function (d) {
+      var obj = d.data() || {};
+      obj.id = d.id;
+      return obj;
+    });
+  }
+
+  function avisa(html) { document.getElementById('avisoConexion').innerHTML = html; }
+
+  function revisaVacio() {
+    if (COLECCIONES.some(function (c) { return !cargado[c]; })) return;
+    var total = COLECCIONES.reduce(function (s, c) { return s + datos[c].length; }, 0);
+    if (total === 0) {
+      avisa('<div class="aviso aviso-info">La base está vacía. Empezá cargando un producto desde <b>Más › Inventario</b>.</div>');
+    } else {
+      avisa('');
+    }
+  }
+
+  async function conecta() {
+    var db = null;
+    try { db = await claude.use('db'); } catch (err) { db = null; }
+
+    if (!db) {
+      avisa('<div class="aviso aviso-alerta">Esta copia no puede guardar cambios: se ve, pero no recuerda. ' +
+            'Abrila desde el enlace original para que guarde.</div>');
+      return;
+    }
+    base = db;
+
+    COLECCIONES.forEach(function (nombre) {
+      db.collection(nombre).onSnapshot(function (snap) {
+        datos[nombre] = documentos(snap);
+        cargado[nombre] = true;
+        revisaVacio();
+        pintaTodo();
+      }, function (err) {
+        avisa('<div class="aviso aviso-alerta">No se pudieron leer los ' + esc(nombre) +
+              (err && err.code ? ' (' + esc(err.code) + ')' : '') + '.</div>');
+      });
+    });
+  }
+
+  // === Arranque ===========================================================
+  pintaPestanas();
+  pintaTodo();
+  if (window.claude && typeof window.claude.use === 'function') {
+    conecta();
+  } else {
+    avisa('<div class="aviso aviso-alerta">Esta copia no puede guardar cambios: se ve, pero no recuerda.</div>');
+  }
+})();
+</script>
+
+</body>

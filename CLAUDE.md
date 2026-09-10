@@ -17,6 +17,7 @@ como una campaña y colgando de ella los prospectos que llegan.
 
 | Camino | Cómo |
 | --- | --- |
+| Sólo un enlace | `https://claude.ai/code/artifact/ff0c7647-d4db-4352-8497-350e1cb28db5` |
 | Navegador, sin instalar nada | `https://codespaces.new/claudioamnatoli-pixel/Claudio-compr-ya/tree/claude/tiktok-ecommerce-program-5y1bcr` |
 | Local, un comando | `npm run empezar` |
 | En línea | Ver «Ponerlo en línea» en el README |
@@ -113,6 +114,24 @@ El sembrado acepta `--solo-si-vacia` y corre dentro de la compilación, para que
 el primer despliegue tenga datos sin abrir una terminal y los siguientes no
 pisen nada.
 
+## La copia de un solo enlace
+
+`enlace/compra-ya.html` es el sistema entero en un archivo, sin servidor ni
+base: corre en el navegador y guarda con la capacidad `db` del artefacto. Está
+publicado en el enlace de arriba; **para actualizarlo hay que republicar ese
+mismo URL**, no crear otro, o el usuario se queda con un enlace viejo.
+
+Repite las reglas del sistema grande a propósito —stock que sale al confirmar y
+vuelve al cancelar o devolver, precio congelado en la línea, comisión atada al
+estado del pedido, atribución por campaña— y **no** tiene sesiones, permisos ni
+auditoría. Si una regla cambia acá, cambia también allá; si no puede repetirse,
+decirlo en `enlace/README.md` en vez de dejar que las dos versiones se
+contradigan en silencio.
+
+`enlace/semilla.json` es un espejo de lo que hay cargado en el artefacto:
+`probar-semilla.mjs` comprueba la página contra esos datos, no contra datos
+inventados. Al sembrar documentos nuevos, actualizar el espejo.
+
 ## Verificar antes de dar algo por bueno
 
 ```
@@ -123,6 +142,15 @@ npm run typecheck && npm run lint && npm run build
 Hay además dos baterías de navegador (Playwright) que cubren sesiones, roles,
 reparto de accesos y auditoría. Al día de hoy: **59** comprobaciones en el
 script y **29** en el navegador (14 + 15).
+
+La copia de un solo enlace tiene las suyas, **78** en total, y necesitan
+Playwright instalado a mano (`npm i -D playwright`; no es dependencia del
+proyecto):
+
+```
+node enlace/probar.mjs           # 63 · circuito completo, almacenamiento simulado
+node enlace/probar-semilla.mjs   # 15 · la página contra los datos publicados
+```
 
 Costumbre de este proyecto: **comprobar contra lo real, no suponer**. El soporte
 de PostgreSQL se validó levantando un PostgreSQL de verdad; el arreglo del proxy,
