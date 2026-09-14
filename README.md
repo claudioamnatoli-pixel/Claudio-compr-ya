@@ -160,8 +160,26 @@ si la base ya tiene gente dentro, el sembrado se salta solo.
 > **Lo que hay que saber del plan gratuito de Render:** el servidor se duerme
 > tras un rato sin visitas y el primer acceso después tarda unos segundos; y la
 > base gratuita se borra a los 30 días. Sirve de sobra para probarlo y
-> mostrarlo, no para vender en serio. Para eso hay que pasar al plan pago de la
-> base, que es la parte que no se puede improvisar: ahí viven tus clientes.
+> mostrarlo, no para vender en serio.
+
+### Pasarlo a pago, para que perdure
+
+La base gratuita **se puede pasar a paga conservando los datos**, así que se
+puede empezar gratis y decidir después. Dos pasos, una sola vez:
+
+1. **Cargar una tarjeta.** En el panel de Render, arriba a la izquierda, abrí el
+   menú del espacio de trabajo y elegí **Billing**. Render hace un cargo de
+   prueba de 1 USD para validar la tarjeta.
+2. **Cambiar el plan de cada recurso.** En **Resources**, entrá a `compra-ya` y
+   a `compra-ya-base`, y en los ajustes de cada uno subí el plan. Son dos
+   cobros: el del servidor y el de la base.
+
+No hace falta el plan **Pro** del espacio de trabajo: ése es para funciones de
+equipo (retención de registros, más dominios), no paga el servidor.
+
+`render.yaml` **no declara `plan` a propósito**. Si lo declarara, cada
+sincronización devolvería el servicio al plan gratuito y pisaría lo pagado.
+Omitiéndolo, Render conserva el plan que cada recurso tenga puesto.
 
 ### El camino largo: elegir vos el hosting y la base
 

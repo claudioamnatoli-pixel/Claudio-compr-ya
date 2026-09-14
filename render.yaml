@@ -1,11 +1,16 @@
 # Despliegue de un clic: crea el servidor y la base PostgreSQL juntos, con las
 # variables ya puestas. La contraseña de sesión se genera sola, para que no haya
 # ningún secreto escrito en el repositorio.
+#
+# El plan NO se declara a propósito. Si acá dijera `plan: free`, cada
+# sincronización devolvería el servicio al plan gratuito y pisaría lo que se
+# haya pagado en el panel. Omitirlo hace que Render conserve el plan que el
+# servicio tenga puesto, así el cambio a pago se hace una vez, en el panel, y
+# queda.
 services:
   - type: web
     name: compra-ya
     runtime: node
-    plan: free
     region: oregon
     branch: claude/tiktok-ecommerce-program-5y1bcr
     buildCommand: npm ci && npm run build
@@ -31,6 +36,5 @@ services:
 
 databases:
   - name: compra-ya-base
-    plan: free
     databaseName: compraya
     user: compraya

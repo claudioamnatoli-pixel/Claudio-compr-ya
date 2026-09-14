@@ -131,6 +131,11 @@ que no haya que copiar cadenas de conexión a mano ni crear una segunda cuenta.
 un secreto escrito en el repositorio. Si cambia la rama de trabajo, hay que
 cambiarla también en `render.yaml` y en el enlace del botón del README.
 
+**`render.yaml` no declara `plan`, y no hay que agregarlo.** Render conserva el
+plan que cada recurso tenga puesto cuando el campo se omite; si se declarara,
+cada sincronización devolvería el servicio al plan gratuito y pisaría lo que se
+haya pagado en el panel. El cambio a pago se hace una vez, en el panel, y queda.
+
 ## La copia de un solo enlace
 
 `enlace/compra-ya.html` es el sistema entero en un archivo, sin servidor ni
