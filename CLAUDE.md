@@ -99,6 +99,15 @@ que convenga notar desde fuera.
 cargarla con un botón, en lugar de responder «correo o contraseña incorrectos» y
 mandar a buscar el problema donde no está.
 
+**Un correo en pantalla se confunde con un enlace.** Las cuentas de ejemplo se
+listaban como texto para copiar; al tocarlas el navegador abre el correo o las
+busca, y parece que el sistema no anda. Ahora cada una es un botón que rellena
+el formulario (`src/app/login/cuentas-demo.tsx`). Se muestran **también en
+producción** —un despliegue recién sembrado no sirve si no se sabe con qué
+entrar— pero allí **sin la contraseña**, que quedaría a la vista de cualquiera
+que abra la dirección: sólo los correos, que ya están en el README, y el aviso
+de cambiarla.
+
 **Los mensajes de error no deben adivinar la causa.** `src/app/error.tsx` mostró
 un tiempo «revisá la base de datos» pasara lo que pasara, y apuntó al lugar
 equivocado. Ahora muestra el motivo real cuando el servidor lo entrega.

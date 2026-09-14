@@ -3,6 +3,7 @@ import { Campo, Formulario } from '@/components/formulario';
 import { CONFIG, VERSION } from '@/lib/config';
 import { prisma } from '@/lib/prisma';
 import { destinoSiYaEntro, iniciarSesionAccion } from './acciones';
+import { CuentasDemo } from './cuentas-demo';
 import { PanelBaseVacia } from './panel-base-vacia';
 
 export const dynamic = 'force-dynamic';
@@ -18,10 +19,12 @@ export default async function LoginPage() {
   const cuentas = await prisma.empleado.count();
   const baseVacia = cuentas === 0;
 
-  // Las cuentas de ejemplo se muestran para poder entrar sin adivinar.
+  // Las cuentas de ejemplo se muestran para poder entrar sin adivinar. También
+  // en producción: un despliegue recién sembrado no sirve de nada si no hay
+  // forma de saber con qué entrar. Lo que no se muestra allí es la contraseña.
   const hayDemostracion =
-    process.env.NODE_ENV !== 'production' &&
     (await prisma.empleado.count({ where: { email: { endsWith: '@compr-ya.com.py' } } })) > 0;
+  const enProduccion = process.env.NODE_ENV === 'production';
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12">
@@ -66,24 +69,7 @@ export default async function LoginPage() {
           </Formulario>
         </div>
 
-        {hayDemostracion ? (
-          <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900">
-            <p className="font-semibold">Cuentas de demostración</p>
-            <p className="mt-1 text-amber-800">
-              Todas usan la contraseña <code className="font-mono font-semibold">demo1234</code>.
-            </p>
-            <ul className="mt-2 space-y-0.5 font-mono">
-              <li>claudia@compr-ya.com.py — administración</li>
-              <li>lidia@compr-ya.com.py — líder de equipo</li>
-              <li>ana@compr-ya.com.py — vendedora</li>
-              <li>marco@compr-ya.com.py — repartidor</li>
-              <li>hugo@compr-ya.com.py — almacén</li>
-            </ul>
-            <p className="mt-2 text-amber-800">
-              Cada rol ve cosas distintas: entra con varias para comprobarlo.
-            </p>
-          </div>
-        ) : null}
+        {hayDemostracion ? <CuentasDemo conPassword={!enProduccion} /> : null}
       </div>
     </div>
   );
