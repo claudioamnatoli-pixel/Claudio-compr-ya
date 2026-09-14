@@ -1,0 +1,36 @@
+# Despliegue de un clic: crea el servidor y la base PostgreSQL juntos, con las
+# variables ya puestas. La contraseña de sesión se genera sola, para que no haya
+# ningún secreto escrito en el repositorio.
+services:
+  - type: web
+    name: compra-ya
+    runtime: node
+    plan: free
+    region: oregon
+    branch: claude/tiktok-ecommerce-program-5y1bcr
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    healthCheckPath: /login
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: compra-ya-base
+          property: connectionString
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: NEXT_PUBLIC_MONEDA
+        value: PYG
+      - key: NEXT_PUBLIC_LOCALE
+        value: es-PY
+      - key: NEXT_PUBLIC_PREFIJO_PAIS
+        value: "595"
+      - key: NEXT_PUBLIC_NOMBRE_TIENDA
+        value: Compra Ya
+
+databases:
+  - name: compra-ya-base
+    plan: free
+    databaseName: compraya
+    user: compraya

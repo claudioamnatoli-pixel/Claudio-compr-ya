@@ -142,11 +142,33 @@ Todo se ajusta desde `.env`, que `npm run empezar` crea por vos a partir de
 ## Ponerlo en línea
 
 Para que el programa tenga una dirección web propia, accesible desde cualquier
-teléfono. Se hace entero desde el navegador, sin terminal, pero hacen falta dos
-cuentas gratuitas: una de hosting y una de base de datos.
+teléfono, con su base de datos de verdad y varias personas entrando a la vez.
 
-> Si el registro en alguno de estos servicios no te deja avanzar, usá el camino
-> de Codespaces de más arriba: corre el mismo programa, sin cuentas nuevas.
+### Lo más corto: un botón
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/claudioamnatoli-pixel/Claudio-compr-ya/tree/claude/tiktok-ecommerce-program-5y1bcr)
+
+Ese botón lee [`render.yaml`](render.yaml) y arma solo el servidor **y** la base
+PostgreSQL, con las variables ya puestas y la clave de sesión generada al azar.
+Entrás con la misma cuenta de GitHub que ya usás para este repositorio: **no hay
+que crear ninguna cuenta más, ni copiar ninguna cadena de conexión**.
+
+El primer despliegue crea las tablas y carga los datos de ejemplo; entrás con
+`claudia@compr-ya.com.py` y `demo1234`. Los siguientes **no** vuelven a sembrar:
+si la base ya tiene gente dentro, el sembrado se salta solo.
+
+> **Lo que hay que saber del plan gratuito de Render:** el servidor se duerme
+> tras un rato sin visitas y el primer acceso después tarda unos segundos; y la
+> base gratuita se borra a los 30 días. Sirve de sobra para probarlo y
+> mostrarlo, no para vender en serio. Para eso hay que pasar al plan pago de la
+> base, que es la parte que no se puede improvisar: ahí viven tus clientes.
+
+### El camino largo: elegir vos el hosting y la base
+
+Hace falta una cuenta de hosting y una de base de datos.
+
+> Si el registro en alguno de estos servicios no te deja avanzar, usá el botón
+> de arriba o el camino de Codespaces: corren el mismo programa.
 
 **1. Base de datos.** Creá una base PostgreSQL gratuita en
 [neon.com](https://neon.com) o [supabase.com](https://supabase.com) y copiá la
@@ -169,6 +191,15 @@ rama. Antes de darle a *Deploy*, agregá estas variables de entorno:
 por su cuenta; entrás con `claudia@compr-ya.com.py` y `demo1234`. Los
 despliegues siguientes **no** vuelven a sembrar: si la base ya tiene gente
 dentro, el sembrado se salta solo y no pisa nada.
+
+### Comprobado, no supuesto
+
+El despliegue se validó levantando un PostgreSQL 16 de verdad y corriendo el
+mismo `npm run build` que corre el servidor: el esquema se pasa solo a
+`postgresql`, se crean las 16 tablas, se siembran los datos, el segundo build
+se salta el sembrado sin duplicar nada, `npm run start` levanta, `/login`
+responde 200, `/` sin sesión devuelve un `307` real, y se entra con usuario y
+contraseña hasta el panel sin un error de JavaScript.
 
 > Cambiá esa contraseña en cuanto entres, y borrá las cuentas de ejemplo antes
 > de usarlo con clientes reales.
@@ -336,6 +367,7 @@ para colgar el identificador real de la campaña o del video.
 ## Estructura
 
 ```
+render.yaml            Despliegue de un clic: servidor y base PostgreSQL juntos
 enlace/
   compra-ya.html       La copia de un solo enlace, entera en un archivo
   probar.mjs           63 comprobaciones de navegador sobre esa copia

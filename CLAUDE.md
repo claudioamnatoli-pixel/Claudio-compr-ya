@@ -20,7 +20,7 @@ como una campaña y colgando de ella los prospectos que llegan.
 | Sólo un enlace | `https://claude.ai/code/artifact/ff0c7647-d4db-4352-8497-350e1cb28db5` |
 | Navegador, sin instalar nada | `https://codespaces.new/claudioamnatoli-pixel/Claudio-compr-ya/tree/claude/tiktok-ecommerce-program-5y1bcr` |
 | Local, un comando | `npm run empezar` |
-| En línea | Ver «Ponerlo en línea» en el README |
+| En línea, un botón | `render.yaml` arma servidor y base PostgreSQL juntos; sólo pide la cuenta de GitHub |
 
 Cuentas de ejemplo, todas con contraseña `demo1234`:
 `claudia@` administración · `lidia@` líder · `ana@` vendedora · `marco@`
@@ -112,7 +112,15 @@ no carga `.env` solo; olvidarlo dejaba el esquema apuntando al motor equivocado)
 
 El sembrado acepta `--solo-si-vacia` y corre dentro de la compilación, para que
 el primer despliegue tenga datos sin abrir una terminal y los siguientes no
-pisen nada.
+pisen nada. Son **10 empleados**, no 5: los cinco de la tabla de arriba son los
+que tienen contraseña de ejemplo. Contar 5 y ver 10 no es un sembrado
+duplicado — ya costó una falsa alarma.
+
+`render.yaml` describe el despliegue entero —servicio web y base PostgreSQL— para
+que no haya que copiar cadenas de conexión a mano ni crear una segunda cuenta.
+`SESSION_SECRET` se genera del lado de Render (`generateValue: true`): nunca hay
+un secreto escrito en el repositorio. Si cambia la rama de trabajo, hay que
+cambiarla también en `render.yaml` y en el enlace del botón del README.
 
 ## La copia de un solo enlace
 
