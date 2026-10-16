@@ -193,9 +193,28 @@ arranque de un comando, sobre una copia sin `.env`, sin dependencias y sin base.
 Y una prueba que no puede fallar no prueba nada: las estructurales se validaron
 rompiéndolas a propósito.
 
+## Freno a la prueba de contraseñas
+
+`minutosDeEspera()` (`src/app/login/acciones.ts`) corta a los **10 fallos en 15
+minutos**. Tres decisiones que hay que respetar:
+
+- **Se cuenta por correo, no por cuenta.** Frenar sólo los correos existentes
+  convertiría el bloqueo en un detector de cuentas: un correo inventado se
+  frena igual.
+- **El freno va antes de buscar la cuenta y antes de verificar la contraseña.**
+  Si fuera después, probar contraseñas seguiría costando lo mismo.
+- **Se cuenta sobre la auditoría que ya existía**, sin campos nuevos: por eso
+  `registrarIntentoFallido` guarda el **correo** en `actor` y el nombre en el
+  resumen. Cambiar eso rompe el conteo en silencio.
+
+El perdón es por antigüedad, no por acierto: los fallos salen solos de la
+ventana. Se probó rompiéndolo —con el límite en 100000 fallan tres
+comprobaciones, entre ellas la única que importa, que la contraseña correcta
+tampoco entre mientras dure—: `node pruebas/bloqueo-de-acceso.mjs`, 8
+comprobaciones contra un PostgreSQL de verdad.
+
 ## Antes de vender de verdad
 
 Cambiar las contraseñas de ejemplo y `SESSION_SECRET`; servir por HTTPS (la
 cookie es `secure` en producción); pasar a PostgreSQL; respaldos; revisar la
-normativa paraguaya de datos personales. Falta un bloqueo tras varios intentos
-fallidos: hoy quedan registrados, pero nada impide seguir probando.
+normativa paraguaya de datos personales.
