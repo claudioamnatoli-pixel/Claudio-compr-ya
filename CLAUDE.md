@@ -282,6 +282,50 @@ fila que coincida» devuelve el faltante en vez de lo pendiente.
 **El módulo es sólo de ADMIN, también la caja.** Que el repartidor vea lo que
 debe sería útil y exige recortar los datos a los suyos; no está hecho.
 
+## Carga masiva del catálogo
+
+El catálogo real va de 500 a 3.000 productos por rubro, así que cargarlos de a
+uno no es una opción. `/inventario/importar` toma las celdas pegadas desde
+Excel.
+
+**Los importes se leen a la paraguaya.** `leerImporte()` (`src/lib/importar.ts`)
+trata cualquier punto o coma como separador de miles cuando la moneda no tiene
+centavos: «190.000» son ciento noventa mil. Leerlo como decimal dividiría todos
+los precios por mil, y eso no se nota hasta que alguien vende algo.
+
+**O entra todo o no entra nada.** Una sola línea mala cancela la carga entera y
+devuelve qué corregir. Una carga a medias de tres mil productos es imposible de
+desenredar.
+
+**No toca el stock de lo que ya existe.** Un código repetido actualiza nombre,
+categoría y precios; las existencias sólo se mueven con una compra o un
+movimiento, que dejan historial. Volver a pegar la misma planilla es seguro.
+
+`crearProductosConStock()` vive en `src/lib/inventario.ts` a propósito: escribe
+existencias e historial juntos, igual que `aplicarMovimiento`, pero en lote. La
+regla sigue teniendo un solo dueño.
+
+Dos bugs que encontró la prueba y conviene no reintroducir:
+
+- **Los títulos se detectan por igualdad exacta, no por «contiene».** Buscar
+  «contiene sku» hacía que un producto con código `SKU-0001` se tomara por
+  encabezado y **desapareciera sin aviso**.
+- **El código repetido se comprueba antes que el resto.** Si se deja para el
+  final, un código cuya primera aparición fue rechazada por otro motivo no
+  queda registrado y la segunda pasa como buena.
+
+`npx tsx pruebas/importar.mjs` (21, sin navegador ni base) y
+`node pruebas/importar-catalogo.mjs` (11, contra PostgreSQL: 3.000 productos en
+un segundo).
+
+## El verificador busca en profundidad
+
+`scripts/verificar-flujo.ts` miraba **una sola carpeta** bajo `src/app/(panel)`,
+así que las acciones en rutas anidadas —la primera fue `inventario/importar`—
+eran invisibles y podían quedarse sin guarda sin que nada fallara. Ahora recorre
+el árbol entero. Se validó quitándole la guarda a la acción anidada: el
+verificador la acusa por nombre.
+
 ## Antes de vender de verdad
 
 Cambiar las contraseñas de ejemplo y `SESSION_SECRET`; servir por HTTPS (la

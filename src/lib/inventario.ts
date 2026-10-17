@@ -66,3 +66,70 @@ export async function aplicarMovimiento(
     },
   });
 }
+
+/**
+ * Alta de muchos productos con su stock inicial, en una sola pasada.
+ *
+ * Existe porque la regla del proyecto —el stock nunca se escribe a mano— no se
+ * puede cumplir a razón de una ida y vuelta por producto cuando son miles: un
+ * catálogo de 3.000 tardaría minutos. Esta función vive en el mismo módulo que
+ * `aplicarMovimiento` justamente para que la regla siga teniendo un solo
+ * dueño: escribe las existencias y su historial juntas, en la misma
+ * transacción, igual que la versión de a una.
+ *
+ * Sólo sirve para dar de alta. Mover el stock de un producto que ya existe
+ * sigue pasando por `aplicarMovimiento`, que es la que sabe validar
+ * existencias.
+ */
+export async function crearProductosConStock(
+  tx: Prisma.TransactionClient,
+  productos: readonly {
+    sku: string;
+    nombre: string;
+    categoria: string;
+    descripcion?: string | null;
+    costo: number;
+    precio: number;
+    stock: number;
+    stockMinimo: number;
+  }[],
+  datos: { motivo: string; referencia?: string | null; empleadoId?: string | null },
+) {
+  if (productos.length === 0) return [];
+
+  await tx.producto.createMany({
+    data: productos.map((p) => ({
+      sku: p.sku,
+      nombre: p.nombre,
+      categoria: p.categoria,
+      descripcion: p.descripcion ?? null,
+      costo: p.costo,
+      precio: p.precio,
+      stock: p.stock,
+      stockMinimo: p.stockMinimo,
+    })),
+  });
+
+  // Se releen para conocer los identificadores que acaba de asignar la base.
+  const creados = await tx.producto.findMany({
+    where: { sku: { in: productos.map((p) => p.sku) } },
+    select: { id: true, sku: true, stock: true },
+  });
+
+  const conStock = creados.filter((p) => p.stock > 0);
+  if (conStock.length > 0) {
+    await tx.movimientoInventario.createMany({
+      data: conStock.map((p) => ({
+        productoId: p.id,
+        tipo: 'ENTRADA',
+        cantidad: p.stock,
+        stockResultante: p.stock,
+        motivo: datos.motivo,
+        referencia: datos.referencia ?? null,
+        empleadoId: datos.empleadoId ?? null,
+      })),
+    });
+  }
+
+  return creados;
+}

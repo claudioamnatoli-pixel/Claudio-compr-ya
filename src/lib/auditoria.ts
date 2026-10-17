@@ -20,6 +20,7 @@ export const ACCIONES_AUDITADAS: Record<string, { etiqueta: string; tono: Tono }
   'equipo.crear': { etiqueta: 'Alta de equipo', tono: 'verde' },
   'producto.crear': { etiqueta: 'Alta de producto', tono: 'verde' },
   'producto.actualizar': { etiqueta: 'Cambio de precio o costo', tono: 'ambar' },
+  'producto.importar': { etiqueta: 'Carga masiva de catálogo', tono: 'marca' },
   'comision.pagar': { etiqueta: 'Pago de comisiones', tono: 'marca' },
   'pedido.anular': { etiqueta: 'Pedido anulado', tono: 'rojo' },
   'proveedor.crear': { etiqueta: 'Alta de proveedor', tono: 'verde' },

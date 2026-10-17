@@ -231,10 +231,23 @@ async function main() {
   // Comprobación estructural: cada acción del panel tiene que empezar
   // autorizando. Ocultar un botón no protege nada, porque la petición se puede
   // enviar a mano; esta prueba evita que una acción nueva se quede sin guarda.
+  //
+  // La búsqueda baja por todas las carpetas, no sólo por las de primer nivel:
+  // mirar un solo escalón dejaba fuera a las rutas anidadas —la primera fue
+  // inventario/importar— y una acción sin guarda ahí no habría hecho fallar
+  // nada. Una red de seguridad con un agujero es peor que no tenerla, porque
+  // se confía en ella.
   const raizPanel = join(process.cwd(), 'src/app/(panel)');
-  const archivosDeAcciones = readdirSync(raizPanel, { withFileTypes: true })
-    .filter((entrada) => entrada.isDirectory())
-    .map((entrada) => join(raizPanel, entrada.name, 'acciones.ts'));
+  function buscarAcciones(carpeta: string): string[] {
+    const encontrados: string[] = [];
+    for (const entrada of readdirSync(carpeta, { withFileTypes: true })) {
+      const ruta = join(carpeta, entrada.name);
+      if (entrada.isDirectory()) encontrados.push(...buscarAcciones(ruta));
+      else if (entrada.name === 'acciones.ts') encontrados.push(ruta);
+    }
+    return encontrados;
+  }
+  const archivosDeAcciones = buscarAcciones(raizPanel);
 
   let accionesRevisadas = 0;
   const sinGuarda: string[] = [];

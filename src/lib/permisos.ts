@@ -171,6 +171,7 @@ const PERMISO_POR_RUTA: readonly (readonly [string, Permiso])[] = [
   ['/leads/nuevo', 'leads.gestionar'],
   ['/pedidos/nuevo', 'pedidos.crear'],
   ['/inventario/nuevo', 'inventario.gestionar'],
+  ['/inventario/importar', 'inventario.gestionar'],
   ['/equipo/nuevo', 'equipo.gestionar'],
   ['/leads', 'leads.ver'],
   ['/pedidos', 'pedidos.ver'],

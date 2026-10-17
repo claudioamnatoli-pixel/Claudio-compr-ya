@@ -59,9 +59,14 @@ export default async function InventarioPage({ searchParams }: { searchParams: P
         titulo="Inventario"
         descripcion="Qué hay en bodega, cuánto vale y qué toca reponer antes de que se agote en pleno live."
         acciones={
-          <Link href="/inventario/nuevo" className="boton-primario">
-            Nuevo producto
-          </Link>
+          <div className="flex gap-2">
+            <Link href="/inventario/importar" className="boton-secundario">
+              Cargar planilla
+            </Link>
+            <Link href="/inventario/nuevo" className="boton-primario">
+              Nuevo producto
+            </Link>
+          </div>
         }
       />
 
