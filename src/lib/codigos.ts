@@ -33,3 +33,11 @@ export async function generarCodigoLead(): Promise<string> {
   });
   return siguienteCodigo('LEAD', ultimo?.codigo);
 }
+
+export async function generarNumeroCompra(): Promise<string> {
+  const ultimo = await prisma.compra.findFirst({
+    orderBy: { numero: 'desc' },
+    select: { numero: true },
+  });
+  return siguienteCodigo('CMP', ultimo?.numero);
+}

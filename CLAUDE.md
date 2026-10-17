@@ -213,6 +213,46 @@ comprobaciones, entre ellas la única que importa, que la contraseña correcta
 tampoco entre mientras dure—: `node pruebas/bloqueo-de-acceso.mjs`, 8
 comprobaciones contra un PostgreSQL de verdad.
 
+## Administración, contabilidad y suministros
+
+Tres pantallas nuevas y una regla que lo gobierna todo.
+
+**Cada gasto se registra una sola vez, en su lugar natural.** El estado de
+resultados (`src/lib/contabilidad.ts`) va a buscar cada cifra donde ya vive —el
+costo a la línea del pedido, las comisiones a `Comision`, la publicidad a
+`Campana`, el reparto a `Envio.costoReal`, el resto a `Gasto`— y **nunca copia**.
+Cargar una comisión o una campaña como `Gasto` la contaría dos veces y el
+resultado mentiría sin que nadie supiera por qué. Por eso `CATEGORIAS_GASTO` no
+tiene categoría de comisiones ni de publicidad: la omisión es deliberada.
+
+**Resultado y caja son preguntas distintas**, y la pantalla muestra las dos.
+El resultado usa el costo de lo que *se vendió*; la caja, lo que se *pagó por
+reponer*. Un mes de mucha reposición da caja negativa con el negocio sano.
+Confundirlas es el error clásico.
+
+**La mercadería entra al depósito al recibir, no al cargar el borrador.**
+`transicionarCompra()` (`src/lib/compras.ts`) es el equivalente de
+`transicionarPedido` para el dinero que sale: aplica el movimiento por
+`aplicarMovimiento()` y pone en `Producto.costo` lo pagado en esta compra —el
+«último costo», con el que hay que calcular el margen de aquí en adelante—.
+El costo histórico no se pierde: queda congelado en cada `ItemCompra`.
+
+**`ItemPedido.costoUnitario` congela el costo del día de la venta**, por el
+mismo motivo que el precio. Sin él, reponer más caro haría parecer que se perdió
+plata en ventas viejas. Los pedidos anteriores a este campo quedan en 0 y su
+margen sale inflado.
+
+**El módulo es sólo de ADMIN.** Almacén recibe mercadería pero no ve compras:
+llevan el costo de cada producto, que es justo lo que ese rol no ve. Si algún
+día tiene que recibirlas, será un permiso propio que muestre cantidades sin
+importes.
+
+Se probó con `node pruebas/administracion.mjs` —20 comprobaciones contra un
+PostgreSQL de verdad— y se validó rompiéndolo: invirtiendo la condición de
+`entraAlDeposito`, la prueba acusa el stock que no se movió. La prueba es
+repetible: el costo de la compra se deriva del actual y los gastos se miden por
+diferencia, para que correrla dos veces sobre la misma base siga probando algo.
+
 ## Antes de vender de verdad
 
 Cambiar las contraseñas de ejemplo y `SESSION_SECRET`; servir por HTTPS (la

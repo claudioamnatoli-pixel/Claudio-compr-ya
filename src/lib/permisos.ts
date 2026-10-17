@@ -46,6 +46,17 @@ export const PERMISOS = [
   'plantillas.ver',
   'plantillas.gestionar',
 
+  /// Proveedores y compras de mercadería.
+  'compras.ver',
+  'compras.gestionar',
+
+  /// Gastos que no están atados a una venta.
+  'gastos.ver',
+  'gastos.gestionar',
+
+  /// El estado de resultados: lo que entra, lo que sale y lo que queda.
+  'contabilidad.ver',
+
   /// Leer el registro de auditoría.
   'auditoria.ver',
 ] as const;
@@ -91,6 +102,11 @@ const PERMISOS_POR_ROL: Record<string, readonly Permiso[]> = {
   REPARTIDOR: ['logistica.ver', 'logistica.gestionar', 'pedidos.ver'],
 
   // Almacén mueve stock; no necesita ver el dinero de las ventas.
+  //
+  // Tampoco las compras, aunque sea quien recibe la mercadería: una compra
+  // lleva el costo de cada producto, que es justamente lo que este rol no ve.
+  // Si algún día almacén tiene que recibir compras, será una decisión aparte y
+  // querrá un permiso propio que deje ver las cantidades sin los importes.
   ALMACEN: ['inventario.ver', 'inventario.gestionar', 'pedidos.ver', 'logistica.ver'],
 };
 
@@ -140,6 +156,13 @@ export function puedeVerEmpleado(
  * El orden importa: las rutas más específicas van primero.
  */
 const PERMISO_POR_RUTA: readonly (readonly [string, Permiso])[] = [
+  ['/compras/nueva', 'compras.gestionar'],
+  ['/proveedores/nuevo', 'compras.gestionar'],
+  ['/gastos/nuevo', 'gastos.gestionar'],
+  ['/compras', 'compras.ver'],
+  ['/proveedores', 'compras.ver'],
+  ['/gastos', 'gastos.ver'],
+  ['/contabilidad', 'contabilidad.ver'],
   ['/leads/nuevo', 'leads.gestionar'],
   ['/pedidos/nuevo', 'pedidos.crear'],
   ['/inventario/nuevo', 'inventario.gestionar'],

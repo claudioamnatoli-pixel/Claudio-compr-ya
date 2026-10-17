@@ -22,6 +22,17 @@ export const ACCIONES_AUDITADAS: Record<string, { etiqueta: string; tono: Tono }
   'producto.actualizar': { etiqueta: 'Cambio de precio o costo', tono: 'ambar' },
   'comision.pagar': { etiqueta: 'Pago de comisiones', tono: 'marca' },
   'pedido.anular': { etiqueta: 'Pedido anulado', tono: 'rojo' },
+  'proveedor.crear': { etiqueta: 'Alta de proveedor', tono: 'verde' },
+  'proveedor.actualizar': { etiqueta: 'Cambio de proveedor', tono: 'ambar' },
+  'proveedor.desactivar': { etiqueta: 'Proveedor dado de baja', tono: 'rojo' },
+  'proveedor.reactivar': { etiqueta: 'Proveedor reactivado', tono: 'verde' },
+  'compra.crear': { etiqueta: 'Compra registrada', tono: 'marca' },
+  'compra.recibir': { etiqueta: 'Mercadería recibida', tono: 'azul' },
+  'compra.pagar': { etiqueta: 'Compra pagada', tono: 'verde' },
+  'compra.anular': { etiqueta: 'Compra anulada', tono: 'rojo' },
+  'gasto.crear': { etiqueta: 'Gasto registrado', tono: 'ambar' },
+  'gasto.actualizar': { etiqueta: 'Gasto corregido', tono: 'ambar' },
+  'gasto.eliminar': { etiqueta: 'Gasto eliminado', tono: 'rojo' },
   'password.cambiada': { etiqueta: 'Contraseña cambiada', tono: 'azul' },
   'sesion.iniciada': { etiqueta: 'Inicio de sesión', tono: 'gris' },
   'sesion.fallida': { etiqueta: 'Acceso fallido', tono: 'rojo' },
@@ -126,10 +137,24 @@ export const NOMBRES_DE_CAMPO: Record<string, string> = {
   stockMinimo: 'Stock mínimo',
   categoria: 'Categoría',
   descripcion: 'Descripción',
+  ruc: 'RUC',
+  contacto: 'Contacto',
+  monto: 'Importe',
+  comprobante: 'Comprobante',
+  fecha: 'Fecha',
+  factura: 'Factura',
 };
 
 /** Campos cuyo valor es dinero, para formatearlos como tal al mostrarlos. */
-export const CAMPOS_DE_DINERO = new Set(['salarioBase', 'metaMensual', 'precio', 'costo']);
+export const CAMPOS_DE_DINERO = new Set([
+  'salarioBase',
+  'metaMensual',
+  'precio',
+  'costo',
+  'monto',
+  'total',
+  'costoUnitario',
+]);
 /** Campos cuyo valor es una fracción que se muestra como porcentaje. */
 export const CAMPOS_DE_PORCENTAJE = new Set(['tasaComision']);
 

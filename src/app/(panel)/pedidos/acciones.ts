@@ -72,11 +72,17 @@ export async function crearPedido(
 
   const productos = await prisma.producto.findMany({
     where: { id: { in: lineas.map((linea) => linea.productoId) } },
-    select: { id: true, nombre: true, precio: true, stock: true },
+    select: { id: true, nombre: true, precio: true, costo: true, stock: true },
   });
   const porId = new Map(productos.map((producto) => [producto.id, producto]));
 
-  const items: { productoId: string; cantidad: number; precioUnitario: number; subtotal: number }[] = [];
+  const items: {
+    productoId: string;
+    cantidad: number;
+    precioUnitario: number;
+    costoUnitario: number;
+    subtotal: number;
+  }[] = [];
   for (const linea of lineas) {
     const producto = porId.get(linea.productoId);
     if (!producto) return fallo('Uno de los productos seleccionados ya no existe.');
@@ -89,6 +95,9 @@ export async function crearPedido(
       productoId: producto.id,
       cantidad: linea.cantidad,
       precioUnitario: producto.precio,
+      // El costo se congela igual que el precio: el margen de una venta vieja
+      // no puede cambiar porque hoy repongas más caro.
+      costoUnitario: producto.costo,
       subtotal: producto.precio * linea.cantidad,
     });
   }

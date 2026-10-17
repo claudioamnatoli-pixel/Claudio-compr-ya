@@ -68,6 +68,42 @@ export const TIPOS_MOVIMIENTO = catalogo({
 /// Movimientos que suman al stock. El resto resta.
 export const MOVIMIENTOS_QUE_SUMAN = new Set(['ENTRADA', 'DEVOLUCION']);
 
+export const ESTADOS_COMPRA = catalogo({
+  BORRADOR: { etiqueta: 'Borrador', tono: 'gris' },
+  RECIBIDA: { etiqueta: 'Recibida', tono: 'azul' },
+  PAGADA: { etiqueta: 'Pagada', tono: 'verde' },
+  ANULADA: { etiqueta: 'Anulada', tono: 'rojo' },
+});
+
+/// Pasos válidos de una compra. Mientras es borrador se puede corregir; al
+/// recibirla entra la mercadería al depósito y ya no se toca.
+export const TRANSICIONES_COMPRA: Record<string, readonly string[]> = {
+  BORRADOR: ['RECIBIDA', 'ANULADA'],
+  RECIBIDA: ['PAGADA', 'ANULADA'],
+  PAGADA: [],
+  ANULADA: [],
+};
+
+/// Compras cuya mercadería ya está en el depósito, y cuyo costo por lo tanto
+/// cuenta como egreso del negocio.
+export const COMPRAS_EN_FIRME = new Set(['RECIBIDA', 'PAGADA']);
+
+/// Categorías de gasto. Deliberadamente no incluyen comisiones ni campañas:
+/// esas ya viven en Comision y en Campana, y cargarlas también aquí haría que
+/// el estado de resultados las contara dos veces.
+export const CATEGORIAS_GASTO = catalogo({
+  ALQUILER: { etiqueta: 'Alquiler', tono: 'morado' },
+  SERVICIOS: { etiqueta: 'Luz, agua e internet', tono: 'azul' },
+  TELEFONIA: { etiqueta: 'Telefonía y datos', tono: 'azul' },
+  EMBALAJE: { etiqueta: 'Embalaje y empaque', tono: 'ambar' },
+  TRANSPORTE: { etiqueta: 'Combustible y mantenimiento', tono: 'ambar' },
+  BANCARIOS: { etiqueta: 'Comisiones bancarias y POS', tono: 'rojo' },
+  IMPUESTOS: { etiqueta: 'Impuestos y contador', tono: 'rojo' },
+  PRODUCCION: { etiqueta: 'Producción de contenido', tono: 'marca' },
+  SUELDOS: { etiqueta: 'Sueldos y cargas sociales', tono: 'verde' },
+  OTROS: { etiqueta: 'Otros', tono: 'gris' },
+});
+
 export const TIPOS_CAMPANA = catalogo({
   VIDEO: { etiqueta: 'Video orgánico', tono: 'marca' },
   LIVE: { etiqueta: 'Transmisión en vivo', tono: 'rojo' },
