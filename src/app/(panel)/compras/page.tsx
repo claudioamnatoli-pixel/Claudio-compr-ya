@@ -11,24 +11,22 @@ import {
   Tarjeta,
   TarjetaTitulo,
 } from '@/components/ui';
-import { PASO_MONEDA } from '@/lib/config';
 import { siguientesEstados } from '@/lib/compras';
 import { COMPRAS_EN_FIRME, ESTADOS_COMPRA } from '@/lib/dominio';
 import { formatearDinero, formatearFecha } from '@/lib/formato';
 import { prisma } from '@/lib/prisma';
+import { buscarProductos } from '../inventario/acciones';
+import { LineasCompra } from './lineas-compra';
 import { crearCompra, moverCompra } from './acciones';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Compras' };
 
-/** Cuántas filas de producto ofrece el formulario de alta. */
-const FILAS = 5;
-
 export default async function ComprasPage() {
   const usuario = await requerirPagina('compras.ver');
   const puedeGestionar = puede(usuario.rol, 'compras.gestionar');
 
-  const [compras, proveedores, productos] = await Promise.all([
+  const [compras, proveedores, cuantosProductos] = await Promise.all([
     prisma.compra.findMany({
       orderBy: { fecha: 'desc' },
       take: 50,
@@ -38,11 +36,9 @@ export default async function ComprasPage() {
       },
     }),
     prisma.proveedor.findMany({ where: { activo: true }, orderBy: { nombre: 'asc' } }),
-    prisma.producto.findMany({
-      where: { activo: true },
-      orderBy: { nombre: 'asc' },
-      select: { id: true, nombre: true, sku: true, costo: true },
-    }),
+    // Sólo hace falta saber si hay alguno, no traerlos todos: las líneas de la
+    // compra se buscan escribiendo.
+    prisma.producto.count({ where: { activo: true } }),
   ]);
 
   const enFirme = compras.filter((c) => COMPRAS_EN_FIRME.has(c.estado));
@@ -136,7 +132,7 @@ export default async function ComprasPage() {
               descripcion="Nace como borrador. Al recibirla entra el stock y se actualiza el costo."
             />
             <div className="p-5">
-              {proveedores.length === 0 || productos.length === 0 ? (
+              {proveedores.length === 0 || cuantosProductos === 0 ? (
                 <SinDatos mensaje="Cargá al menos un proveedor y un producto antes de registrar una compra." />
               ) : (
                 <Formulario accion={crearCompra} textoBoton="Registrar borrador">
@@ -153,40 +149,7 @@ export default async function ComprasPage() {
                       <input name="factura" className="campo" placeholder="001-001-0001234" />
                     </Campo>
 
-                    <div className="space-y-2">
-                      <span className="etiqueta-campo">Productos</span>
-                      {Array.from({ length: FILAS }).map((_, fila) => (
-                        <div key={fila} className="grid grid-cols-[1fr_4.5rem_6.5rem] gap-2">
-                          <select name="productoId" className="campo" defaultValue="">
-                            <option value="">—</option>
-                            {productos.map((p) => (
-                              <option key={p.id} value={p.id}>{p.nombre}</option>
-                            ))}
-                          </select>
-                          <input
-                            name="cantidad"
-                            type="number"
-                            min={0}
-                            step={1}
-                            inputMode="numeric"
-                            className="campo"
-                            placeholder="Cant."
-                          />
-                          <input
-                            name="costoUnitario"
-                            type="number"
-                            min={0}
-                            step={PASO_MONEDA}
-                            inputMode="numeric"
-                            className="campo"
-                            placeholder="Costo"
-                          />
-                        </div>
-                      ))}
-                      <p className="text-xs text-slate-500">
-                        El costo es lo que pagás por unidad en esta compra. Dejá en blanco las filas que no uses.
-                      </p>
-                    </div>
+                    <LineasCompra buscar={buscarProductos} />
 
                     <Campo etiqueta="Notas">
                       <textarea name="notas" rows={2} className="campo" placeholder="Condiciones, plazo de pago" />

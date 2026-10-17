@@ -318,6 +318,34 @@ Dos bugs que encontró la prueba y conviene no reintroducir:
 `node pruebas/importar-catalogo.mjs` (11, contra PostgreSQL: 3.000 productos en
 un segundo).
 
+## Pantallas con catálogo grande
+
+Con 3.000 productos, cuatro pantallas traían el catálogo entero. La de compras
+era la peor: cinco desplegables con todo adentro, quince mil renglones en una
+sola página.
+
+**Nada de desplegables de catálogo.** `BuscadorProducto`
+(`src/components/buscador-producto.tsx`) consulta mientras se escribe, con
+espera de 250 ms y descartando las respuestas que llegan tarde —si no, una
+búsqueda vieja puede pisar a la nueva—. El identificador elegido viaja en un
+campo oculto, así el formulario se envía igual que antes y las acciones no
+cambiaron. Lo usan compras, armar pedido y alta de prospectos.
+
+**El inventario pagina, pero los totales no.** `POR_PAGINA = 50` para las filas;
+las cifras y las alertas se calculan sobre el catálogo entero con una consulta
+que pide sólo cuatro columnas numéricas —unos kilobytes— porque el problema
+nunca fue la base, sino dibujar 3.000 filas. La alerta compara dos columnas, que
+Prisma no expresa en `where`, así que se resuelve en TypeScript y se pagina por
+los identificadores obtenidos.
+
+Medido con 3.014 productos reales: el inventario pasó de ~1 MB a **130 KB**, y
+las tres pantallas de formulario quedaron entre 23 y 31 KB, con menos de 20
+`<option>` cada una. `node pruebas/escala.mjs`, 14 comprobaciones.
+
+Al escribir pruebas sobre estas pantallas: el `role="option"` está en el botón,
+no en el `<li>`; y leer cifras del `textContent` del cuerpo entero las pega
+(«30.6283.014»), así que conviene acotar a un locator.
+
 ## El verificador busca en profundidad
 
 `scripts/verificar-flujo.ts` miraba **una sola carpeta** bajo `src/app/(panel)`,

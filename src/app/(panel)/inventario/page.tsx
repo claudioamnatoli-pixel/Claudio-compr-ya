@@ -11,11 +11,20 @@ import {
   Tabla,
   Tarjeta,
 } from '@/components/ui';
+import { Paginacion } from '@/components/paginacion';
 import { formatearDinero, formatearNumero, formatearPorcentaje } from '@/lib/formato';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Inventario' };
+
+/**
+ * Cuántas filas se dibujan por página.
+ *
+ * El catálogo real puede andar por los 3.000 productos y antes se pintaban
+ * todos de una: cerca de un megabyte de página, lento en un celular con datos.
+ */
+const POR_PAGINA = 50;
 
 type Parametros = Promise<{ [clave: string]: string | string[] | undefined }>;
 
@@ -33,8 +42,16 @@ export default async function InventarioPage({ searchParams }: { searchParams: P
       : {}),
   };
 
-  const [productos, categorias] = await Promise.all([
-    prisma.producto.findMany({ where: filtro, orderBy: { nombre: 'asc' } }),
+  const pagina = Math.max(1, Number(primerValor(parametros.pagina) ?? '1') || 1);
+
+  // Los totales y las alertas se calculan sobre el catálogo entero, pero
+  // pidiendo sólo las cuatro cifras que hacen falta: con 3.000 productos son
+  // unos pocos kilobytes, mientras que dibujar las 3.000 filas no lo era.
+  const [cifras, categorias] = await Promise.all([
+    prisma.producto.findMany({
+      where: filtro,
+      select: { id: true, stock: true, costo: true, precio: true, stockMinimo: true },
+    }),
     prisma.producto.findMany({
       distinct: ['categoria'],
       select: { categoria: true },
@@ -42,16 +59,25 @@ export default async function InventarioPage({ searchParams }: { searchParams: P
     }),
   ]);
 
-  // El filtro de alertas compara dos columnas, algo que el `where` de Prisma no
-  // expresa directamente, así que se aplica aquí sobre el resultado.
-  const visibles = soloAlertas
-    ? productos.filter((producto) => producto.stock <= producto.stockMinimo)
-    : productos;
+  const valorInventario = cifras.reduce((suma, p) => suma + p.stock * p.costo, 0);
+  const valorVenta = cifras.reduce((suma, p) => suma + p.stock * p.precio, 0);
+  const unidades = cifras.reduce((suma, p) => suma + p.stock, 0);
+  // Comparar dos columnas es lo único que el `where` de Prisma no expresa, así
+  // que la alerta se resuelve acá y se pagina por los identificadores.
+  const idsEnAlerta = cifras.filter((p) => p.stock <= p.stockMinimo).map((p) => p.id);
+  const enAlerta = idsEnAlerta.length;
 
-  const valorInventario = productos.reduce((suma, p) => suma + p.stock * p.costo, 0);
-  const valorVenta = productos.reduce((suma, p) => suma + p.stock * p.precio, 0);
-  const unidades = productos.reduce((suma, p) => suma + p.stock, 0);
-  const enAlerta = productos.filter((p) => p.stock <= p.stockMinimo).length;
+  const filtroPagina: Prisma.ProductoWhereInput = soloAlertas
+    ? { ...filtro, id: { in: idsEnAlerta } }
+    : filtro;
+  const total = soloAlertas ? enAlerta : cifras.length;
+
+  const visibles = await prisma.producto.findMany({
+    where: filtroPagina,
+    orderBy: { nombre: 'asc' },
+    take: POR_PAGINA,
+    skip: (pagina - 1) * POR_PAGINA,
+  });
 
   return (
     <>
@@ -74,7 +100,7 @@ export default async function InventarioPage({ searchParams }: { searchParams: P
         <Indicador
           titulo="Unidades en bodega"
           valor={formatearNumero(unidades)}
-          detalle={`${productos.length} productos en catálogo`}
+          detalle={`${formatearNumero(cifras.length)} productos en catálogo`}
           tono="azul"
         />
         <Indicador
@@ -172,6 +198,12 @@ export default async function InventarioPage({ searchParams }: { searchParams: P
             </tbody>
           </Tabla>
         )}
+        <Paginacion
+          pagina={pagina}
+          porPagina={POR_PAGINA}
+          total={total}
+          parametros={parametros}
+        />
       </Tarjeta>
     </>
   );

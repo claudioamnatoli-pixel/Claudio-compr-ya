@@ -2,6 +2,7 @@ import { requerirPagina } from '@/lib/guardias';
 import { puede } from '@/lib/permisos';
 import Link from 'next/link';
 import { Campo, Formulario } from '@/components/formulario';
+import { buscarProductos } from '../../inventario/acciones';
 import { ConstructorPedido } from '@/components/constructor-pedido';
 import { EncabezadoPagina, Tarjeta, TarjetaTitulo } from '@/components/ui';
 import { METODOS_PAGO } from '@/lib/dominio';
@@ -19,12 +20,10 @@ export default async function NuevoPedidoPage({ searchParams }: { searchParams: 
   const { leadId: leadIdCrudo } = await searchParams;
   const leadId = Array.isArray(leadIdCrudo) ? leadIdCrudo[0] : leadIdCrudo;
 
-  const [productos, zonas, vendedores, lead] = await Promise.all([
-    prisma.producto.findMany({
-      where: { activo: true },
-      select: { id: true, nombre: true, precio: true, stock: true },
-      orderBy: { nombre: 'asc' },
-    }),
+  const [cuantosProductos, zonas, vendedores, lead] = await Promise.all([
+    // El catálogo ya no se trae entero: las líneas del pedido se buscan
+    // escribiendo. Sólo hace falta saber si hay algo que vender.
+    prisma.producto.count({ where: { activo: true } }),
     prisma.zona.findMany({
       where: { activa: true },
       select: { id: true, nombre: true, ciudad: true, costoEnvio: true, horasEstimadas: true },
@@ -51,6 +50,15 @@ export default async function NuevoPedidoPage({ searchParams }: { searchParams: 
       : null,
   ]);
 
+  // Si el prospecto venía interesado en algo, se trae ese producto solo para
+  // dejar la primera línea ya puesta.
+  const productoInicial = lead?.productoInteresId
+    ? await prisma.producto.findUnique({
+        where: { id: lead.productoInteresId },
+        select: { id: true, nombre: true, sku: true, precio: true, costo: true, stock: true },
+      })
+    : null;
+
   return (
     <>
       <EncabezadoPagina
@@ -67,7 +75,7 @@ export default async function NuevoPedidoPage({ searchParams }: { searchParams: 
         }
       />
 
-      {productos.length === 0 ? (
+      {cuantosProductos === 0 ? (
         <Tarjeta className="p-6 text-sm text-slate-600">
           No hay productos activos en el catálogo.{' '}
           <Link href="/inventario/nuevo" className="font-medium text-marca-700 hover:underline">
@@ -128,9 +136,9 @@ export default async function NuevoPedidoPage({ searchParams }: { searchParams: 
               <TarjetaTitulo titulo="Productos" />
               <div className="p-5">
                 <ConstructorPedido
-                  productos={productos}
                   zonas={zonas}
-                  productoInicialId={lead?.productoInteresId ?? undefined}
+                  productoInicial={productoInicial}
+                  buscar={buscarProductos}
                 />
               </div>
             </Tarjeta>

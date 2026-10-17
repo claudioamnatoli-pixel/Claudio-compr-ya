@@ -1,13 +1,14 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
+import { BuscadorProducto, type ProductoEncontrado } from '@/components/buscador-producto';
 import { CONFIG, PASO_MONEDA } from '@/lib/config';
 import { aUnidadMinima, formatearDinero } from '@/lib/formato';
 
-type Producto = { id: string; nombre: string; precio: number; stock: number };
+type Producto = ProductoEncontrado;
 type Zona = { id: string; nombre: string; ciudad: string; costoEnvio: number; horasEstimadas: number };
 
-type Linea = { clave: number; productoId: string; cantidad: number };
+type Linea = { clave: number; producto: Producto | null; cantidad: number };
 
 /**
  * Editor de las líneas del pedido. Calcula el total en vivo mientras se arma,
@@ -16,21 +17,19 @@ type Linea = { clave: number; productoId: string; cantidad: number };
  * lo que se muestra aquí es una ayuda, no la fuente de verdad.
  */
 export function ConstructorPedido({
-  productos,
   zonas,
-  productoInicialId,
+  productoInicial,
+  buscar,
 }: {
-  productos: Producto[];
   zonas: Zona[];
-  productoInicialId?: string;
+  productoInicial?: Producto | null;
+  buscar: (texto: string) => Promise<Producto[]>;
 }) {
   const [lineas, setLineas] = useState<Linea[]>([
-    { clave: 1, productoId: productoInicialId ?? productos[0]?.id ?? '', cantidad: 1 },
+    { clave: 1, producto: productoInicial ?? null, cantidad: 1 },
   ]);
   const [zonaId, setZonaId] = useState(zonas[0]?.id ?? '');
   const [descuento, setDescuento] = useState('0');
-
-  const porId = useMemo(() => new Map(productos.map((p) => [p.id, p])), [productos]);
 
   function actualizarLinea(clave: number, cambios: Partial<Linea>) {
     setLineas((actuales) =>
@@ -41,7 +40,7 @@ export function ConstructorPedido({
   function agregarLinea() {
     setLineas((actuales) => [
       ...actuales,
-      { clave: Math.max(0, ...actuales.map((l) => l.clave)) + 1, productoId: productos[0]?.id ?? '', cantidad: 1 },
+      { clave: Math.max(0, ...actuales.map((l) => l.clave)) + 1, producto: null, cantidad: 1 },
     ]);
   }
 
@@ -51,47 +50,36 @@ export function ConstructorPedido({
     );
   }
 
-  const subtotal = lineas.reduce((suma, linea) => {
-    const producto = porId.get(linea.productoId);
-    return suma + (producto ? producto.precio * linea.cantidad : 0);
-  }, 0);
+  const subtotal = lineas.reduce(
+    (suma, linea) => suma + (linea.producto ? linea.producto.precio * linea.cantidad : 0),
+    0,
+  );
 
   const zona = zonas.find((z) => z.id === zonaId);
   const costoEnvio = zona?.costoEnvio ?? 0;
   const descuentoAplicado = Math.max(0, aUnidadMinima(descuento.replace(',', '.')));
   const total = Math.max(0, subtotal - descuentoAplicado) + costoEnvio;
 
-  const excedeStock = lineas.some((linea) => {
-    const producto = porId.get(linea.productoId);
-    return producto ? linea.cantidad > producto.stock : false;
-  });
+  const excedeStock = lineas.some((linea) =>
+    linea.producto ? linea.cantidad > linea.producto.stock : false,
+  );
 
   return (
     <div className="space-y-4">
       <div className="space-y-3">
         {lineas.map((linea) => {
-          const producto = porId.get(linea.productoId);
+          const producto = linea.producto;
           const sinStock = producto ? linea.cantidad > producto.stock : false;
           return (
             <div key={linea.clave} className="flex flex-wrap items-end gap-3">
-              <label className="min-w-[16rem] flex-1">
+              <div className="min-w-[18rem] flex-1">
                 <span className="etiqueta-campo">Producto</span>
-                <select
-                  name="productoId"
-                  value={linea.productoId}
-                  onChange={(evento) =>
-                    actualizarLinea(linea.clave, { productoId: evento.target.value })
-                  }
-                  className="campo"
-                >
-                  {productos.map((p) => (
-                    <option key={p.id} value={p.id} disabled={p.stock === 0}>
-                      {p.nombre} — {formatearDinero(p.precio)}
-                      {p.stock === 0 ? ' (agotado)' : ` (${p.stock} disp.)`}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                <BuscadorProducto
+                  nombreCampo="productoId"
+                  buscar={buscar}
+                  alElegir={(elegido) => actualizarLinea(linea.clave, { producto: elegido })}
+                />
+              </div>
               <label className="w-28">
                 <span className="etiqueta-campo">Cantidad</span>
                 <input

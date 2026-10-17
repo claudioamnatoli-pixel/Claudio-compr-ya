@@ -178,3 +178,30 @@ export async function registrarMovimiento(
   revalidatePath('/');
   return exito('Movimiento registrado.');
 }
+
+/**
+ * Busca productos por nombre o código para los selectores de las pantallas de
+ * pedidos y compras.
+ *
+ * Existe porque un desplegable con el catálogo entero dejó de servir: con
+ * 3.000 productos son 3.000 renglones que nadie recorre, y en el formulario de
+ * compras, con cinco líneas, eran quince mil. Se consulta mientras se escribe
+ * y se devuelven unos pocos.
+ */
+export async function buscarProductos(texto: string) {
+  const guardia = await autorizar('inventario.ver');
+  if (!guardia.ok) return [];
+
+  const busqueda = texto.trim();
+  if (busqueda.length < 2) return [];
+
+  return prisma.producto.findMany({
+    where: {
+      activo: true,
+      OR: [{ nombre: { contains: busqueda } }, { sku: { contains: busqueda } }],
+    },
+    orderBy: { nombre: 'asc' },
+    take: 20,
+    select: { id: true, nombre: true, sku: true, precio: true, costo: true, stock: true },
+  });
+}

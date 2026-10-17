@@ -5,6 +5,8 @@ import { EncabezadoPagina, Tarjeta } from '@/components/ui';
 import { ORIGENES_LEAD } from '@/lib/dominio';
 import { formatearDinero } from '@/lib/formato';
 import { prisma } from '@/lib/prisma';
+import { BuscadorProducto } from '@/components/buscador-producto';
+import { buscarProductos } from '../../inventario/acciones';
 import { crearLead } from '../acciones';
 
 export const dynamic = 'force-dynamic';
@@ -12,17 +14,15 @@ export const metadata = { title: 'Nuevo prospecto' };
 
 export default async function NuevoLeadPage() {
   await requerirPagina('leads.gestionar');
-  const [campanas, productos, vendedores] = await Promise.all([
+  const [campanas, cuantosProductos, vendedores] = await Promise.all([
     prisma.campana.findMany({
       where: { activa: true },
       select: { id: true, nombre: true },
       orderBy: { fechaInicio: 'desc' },
     }),
-    prisma.producto.findMany({
-      where: { activo: true },
-      select: { id: true, nombre: true, precio: true },
-      orderBy: { nombre: 'asc' },
-    }),
+    // El catálogo no se trae entero: el producto de interés se busca
+    // escribiendo, porque con miles un desplegable no sirve.
+    prisma.producto.count({ where: { activo: true } }),
     prisma.empleado.findMany({
       where: { rol: { in: ['VENDEDOR', 'LIDER'] }, activo: true },
       select: { id: true, nombre: true },
@@ -73,15 +73,12 @@ export default async function NuevoLeadPage() {
                 ))}
               </select>
             </Campo>
-            <Campo etiqueta="Producto de interés">
-              <select name="productoInteresId" defaultValue="" className="campo">
-                <option value="">Sin definir</option>
-                {productos.map((producto) => (
-                  <option key={producto.id} value={producto.id}>
-                    {producto.nombre} — {formatearDinero(producto.precio)}
-                  </option>
-                ))}
-              </select>
+            <Campo etiqueta="Producto de interés" ayuda="Opcional. Escribí para buscarlo.">
+              {cuantosProductos === 0 ? (
+                <p className="text-sm text-slate-500">No hay productos en el catálogo todavía.</p>
+              ) : (
+                <BuscadorProducto nombreCampo="productoInteresId" buscar={buscarProductos} />
+              )}
             </Campo>
             <Campo
               etiqueta="Responsable"
