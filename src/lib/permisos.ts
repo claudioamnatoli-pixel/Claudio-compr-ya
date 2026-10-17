@@ -57,6 +57,10 @@ export const PERMISOS = [
   /// El estado de resultados: lo que entra, lo que sale y lo que queda.
   'contabilidad.ver',
 
+  /// El efectivo del reparto: qué se cobró en la calle y qué se entregó.
+  'caja.ver',
+  'caja.gestionar',
+
   /// Leer el registro de auditoría.
   'auditoria.ver',
 ] as const;
@@ -163,6 +167,7 @@ const PERMISO_POR_RUTA: readonly (readonly [string, Permiso])[] = [
   ['/proveedores', 'compras.ver'],
   ['/gastos', 'gastos.ver'],
   ['/contabilidad', 'contabilidad.ver'],
+  ['/caja', 'caja.ver'],
   ['/leads/nuevo', 'leads.gestionar'],
   ['/pedidos/nuevo', 'pedidos.crear'],
   ['/inventario/nuevo', 'inventario.gestionar'],

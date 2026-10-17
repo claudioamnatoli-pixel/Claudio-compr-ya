@@ -23,6 +23,7 @@ const SECCIONES: Seccion[] = [
   { href: '/campanas', etiqueta: 'Campañas', permiso: 'campanas.ver', icono: 'M3 10v4h4l5 4V6L7 10H3zM17 8a5 5 0 010 8' },
   { href: '/plantillas', etiqueta: 'Plantillas', permiso: 'plantillas.ver', icono: 'M4 4h16v12H8l-4 4V4zM8 9h8M8 12h5' },
   { href: '/contabilidad', etiqueta: 'Contabilidad', permiso: 'contabilidad.ver', icono: 'M9 7h6M9 11h6M9 15h3M5 3h14v18l-7-3-7 3V3z' },
+  { href: '/caja', etiqueta: 'Caja', permiso: 'caja.ver', icono: 'M3 7h18v12H3zM3 11h18M7 15h3' },
   { href: '/gastos', etiqueta: 'Gastos', permiso: 'gastos.ver', icono: 'M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6' },
   { href: '/compras', etiqueta: 'Compras', permiso: 'compras.ver', icono: 'M3 3h2l2.4 12h10L20 7H6M9 20a1 1 0 100-2 1 1 0 000 2zM17 20a1 1 0 100-2 1 1 0 000 2z' },
   { href: '/proveedores', etiqueta: 'Proveedores', permiso: 'compras.ver', icono: 'M3 9l1-5h16l1 5M4 9h16v11H4zM10 20v-6h4v6' },

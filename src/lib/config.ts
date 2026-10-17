@@ -32,7 +32,7 @@ const decimales = decimalesDeLaMoneda();
  * entorno está corriendo el código actual o uno anterior, sin abrir una
  * terminal. Se sube a mano cuando hay un cambio que importa notar desde fuera.
  */
-export const VERSION = '2026.10.17-a';
+export const VERSION = '2026.10.17-b';
 
 export const CONFIG = {
   nombreTienda: process.env.NEXT_PUBLIC_NOMBRE_TIENDA || 'Compr-Ya',

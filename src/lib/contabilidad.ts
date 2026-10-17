@@ -25,7 +25,7 @@ export type EstadoDeResultados = Awaited<ReturnType<typeof estadoDeResultados>>;
 export async function estadoDeResultados(desde: Date, hasta: Date) {
   const rango = { gte: desde, lte: hasta };
 
-  const [entregados, comisiones, campanas, gastos, compras, enviosConCosto] =
+  const [entregados, comisiones, campanas, gastos, compras, enviosConCosto, rendido] =
     await Promise.all([
       // Ingresos y costo de la mercadería vendida: sólo pedidos entregados, que
       // son los únicos que de verdad se cobraron.
@@ -57,6 +57,12 @@ export async function estadoDeResultados(desde: Date, hasta: Date) {
       prisma.envio.aggregate({
         where: { fechaEntrega: rango },
         _sum: { costoReal: true, montoCobrado: true },
+      }),
+      // Lo que de verdad llegó al negocio. Cobrar no es lo mismo que recibir:
+      // entre una cosa y la otra la plata está en el bolsillo del repartidor.
+      prisma.rendicion.aggregate({
+        where: { fecha: rango },
+        _sum: { declarado: true, diferencia: true },
       }),
     ]);
 
@@ -111,6 +117,13 @@ export async function estadoDeResultados(desde: Date, hasta: Date) {
     margen: ingresos > 0 ? resultado / ingresos : null,
     caja: {
       cobradoEnRuta,
+      /// Lo que los repartidores entregaron de verdad al cerrar caja.
+      rendido: rendido._sum.declarado ?? 0,
+      /// Negativo cuando faltó plata respecto de lo cobrado.
+      diferenciaRendiciones: rendido._sum.diferencia ?? 0,
+      /// Cobrado pero todavía sin rendir, en el período. No es una pérdida:
+      /// es plata que está en la calle.
+      enLaCalle: cobradoEnRuta - (rendido._sum.declarado ?? 0),
       comprasRecibidas,
       /// Aproximación: lo cobrado en ruta menos lo que se pagó por reponer y
       /// los gastos del período. No incluye cobros por transferencia, que el

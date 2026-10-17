@@ -253,6 +253,35 @@ PostgreSQL de verdad— y se validó rompiéndolo: invirtiendo la condición de
 repetible: el costo de la compra se deriva del actual y los gastos se miden por
 diferencia, para que correrla dos veces sobre la misma base siga probando algo.
 
+## Caja y rendiciones
+
+Con cobro contra entrega el efectivo anda en el bolsillo de quien reparte.
+`Envio.montoCobrado` sabía cuánto se cobró; `Rendicion` sabe si llegó.
+
+**Cada envío queda atado a una sola rendición** (`Envio.rendicionId`). Esa
+atadura es la integridad de todo: sin ella el mismo cobro se podría rendir dos
+veces, o quedar sin rendir sin que apareciera en pendientes. Se validó
+rompiéndola —vaciando la lista de envíos que se atan— y la prueba acusa cuatro
+fallos, entre ellos que la plata se puede volver a rendir.
+
+**El esperado se congela al cerrar.** Si se recalculara después, corregir un
+envío cambiaría una diferencia que ya se discutió y se dio por saldada.
+
+**Sólo se atan los envíos que se contaron.** Si entre el cálculo y el cierre
+entra un cobro nuevo, queda pendiente para la próxima en vez de colarse sin
+estar sumado en el esperado.
+
+La contabilidad distingue ahora **cobrado**, **rendido** y **todavía en la
+calle**: lo tercero no es una pérdida, es plata que no llegó aún.
+
+`node pruebas/caja.mjs`, 14 comprobaciones contra un PostgreSQL de verdad. Al
+acotar una aserción a una tabla, hacerlo por su encabezado: la tabla de cierres
+anteriores también nombra al repartidor y lleva importes, y leer «la primera
+fila que coincida» devuelve el faltante en vez de lo pendiente.
+
+**El módulo es sólo de ADMIN, también la caja.** Que el repartidor vea lo que
+debe sería útil y exige recortar los datos a los suyos; no está hecho.
+
 ## Antes de vender de verdad
 
 Cambiar las contraseñas de ejemplo y `SESSION_SECRET`; servir por HTTPS (la

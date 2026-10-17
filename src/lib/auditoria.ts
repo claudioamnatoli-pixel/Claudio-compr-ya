@@ -30,6 +30,7 @@ export const ACCIONES_AUDITADAS: Record<string, { etiqueta: string; tono: Tono }
   'compra.recibir': { etiqueta: 'Mercadería recibida', tono: 'azul' },
   'compra.pagar': { etiqueta: 'Compra pagada', tono: 'verde' },
   'compra.anular': { etiqueta: 'Compra anulada', tono: 'rojo' },
+  'rendicion.registrar': { etiqueta: 'Rendición de caja', tono: 'marca' },
   'gasto.crear': { etiqueta: 'Gasto registrado', tono: 'ambar' },
   'gasto.actualizar': { etiqueta: 'Gasto corregido', tono: 'ambar' },
   'gasto.eliminar': { etiqueta: 'Gasto eliminado', tono: 'rojo' },

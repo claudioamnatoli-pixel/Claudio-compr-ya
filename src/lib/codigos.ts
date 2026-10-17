@@ -41,3 +41,11 @@ export async function generarNumeroCompra(): Promise<string> {
   });
   return siguienteCodigo('CMP', ultimo?.numero);
 }
+
+export async function generarNumeroRendicion(): Promise<string> {
+  const ultimo = await prisma.rendicion.findFirst({
+    orderBy: { numero: 'desc' },
+    select: { numero: true },
+  });
+  return siguienteCodigo('REN', ultimo?.numero);
+}

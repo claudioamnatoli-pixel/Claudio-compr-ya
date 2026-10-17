@@ -135,6 +135,21 @@ export default async function ContabilidadPage() {
             />
             <div className="pb-3">
               <Renglon concepto="Cobrado contra entrega" monto={r.caja.cobradoEnRuta} />
+              <Renglon concepto="Rendido por los repartidores" monto={r.caja.rendido} />
+              {r.caja.enLaCalle !== 0 ? (
+                <Renglon
+                  concepto="Todavía en la calle"
+                  detalle="cobrado y sin rendir"
+                  monto={r.caja.enLaCalle}
+                />
+              ) : null}
+              {r.caja.diferenciaRendiciones !== 0 ? (
+                <Renglon
+                  concepto={r.caja.diferenciaRendiciones < 0 ? 'Faltantes de caja' : 'Sobrantes de caja'}
+                  monto={Math.abs(r.caja.diferenciaRendiciones)}
+                  negativo={r.caja.diferenciaRendiciones < 0}
+                />
+              ) : null}
               <Renglon concepto="Mercadería repuesta" monto={r.caja.comprasRecibidas} negativo />
               <Renglon concepto="Gastos pagados" monto={r.egresos.gastos} negativo />
               <Renglon concepto="Movimiento" monto={Math.abs(r.caja.movimiento)} fuerte />

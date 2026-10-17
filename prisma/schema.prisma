@@ -80,6 +80,8 @@ model Empleado {
   comisiones  Comision[]
   compras     Compra[]
   gastos      Gasto[]
+  rendiciones Rendicion[] @relation("RepartidorDeRendicion")
+  recibidas   Rendicion[] @relation("ReceptorDeRendicion")
   sesiones    Sesion[]
   auditoria   Auditoria[]
 
@@ -380,8 +382,15 @@ model Envio {
   repartidorId String?
   repartidor   Empleado? @relation(fields: [repartidorId], references: [id], onDelete: SetNull)
 
+  /// Rendición en la que este cobro ya fue entregado. Nulo mientras la plata
+  /// siga en manos del repartidor. Es lo que impide contar un cobro dos veces
+  /// o dejarlo sin rendir sin que se note.
+  rendicionId String?
+  rendicion   Rendicion? @relation(fields: [rendicionId], references: [id], onDelete: SetNull)
+
   @@index([estado])
   @@index([repartidorId])
+  @@index([rendicionId])
 }
 
 // ---------------------------------------------------------------------------
@@ -544,4 +553,38 @@ model Gasto {
 
   @@index([fecha])
   @@index([categoria])
+}
+
+/// El cierre de caja de un repartidor: cuánta plata trae y cuánta dice el
+/// sistema que cobró.
+///
+/// Con cobro contra entrega, el efectivo anda en el bolsillo de quien reparte.
+/// `Envio.montoCobrado` sabe cuánto se cobró, pero no sabía si llegó. Cada
+/// envío queda atado a una sola rendición: así un cobro no se puede contar dos
+/// veces ni quedar sin rendir sin que aparezca en la lista de pendientes.
+model Rendicion {
+  id     String   @id @default(cuid())
+  numero String   @unique
+  fecha  DateTime @default(now())
+  /// Lo que el sistema calculó que debía traer, congelado en el momento de
+  /// cerrar: si se recalculara después, un envío corregido más tarde cambiaría
+  /// una diferencia que ya se discutió y se dio por saldada.
+  esperado   Int
+  /// Lo que el repartidor entregó de verdad.
+  declarado  Int
+  /// declarado − esperado. Negativo es faltante.
+  diferencia Int
+  notas      String?
+  createdAt  DateTime @default(now())
+
+  repartidorId String
+  repartidor   Empleado @relation("RepartidorDeRendicion", fields: [repartidorId], references: [id])
+
+  /// Quién recibió la plata.
+  recibidoPorId String?
+  recibidoPor   Empleado? @relation("ReceptorDeRendicion", fields: [recibidoPorId], references: [id], onDelete: SetNull)
+
+  envios Envio[]
+
+  @@index([repartidorId, fecha])
 }

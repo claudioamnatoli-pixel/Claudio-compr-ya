@@ -1,5 +1,5 @@
 // Circuito de administración, contabilidad y suministros, contra un servidor
-// ya levantado en 127.0.0.1:3113 con una base sembrada.
+// ya levantado en 127.0.0.1:3114 con una base sembrada.
 //
 //   npm i -D playwright
 //   DATABASE_URL=… NODE_ENV=production PORT=3112 npm run start &
@@ -10,7 +10,7 @@ import { readdirSync, existsSync } from 'fs';
 const raiz = process.env.PLAYWRIGHT_BROWSERS_PATH || '/opt/pw-browsers';
 const dir = readdirSync(raiz).filter((d) => d.startsWith('chromium-')).sort().pop();
 const exe = `${raiz}/${dir}/chrome-linux/chrome`;
-const SITIO = 'http://127.0.0.1:3113';
+const SITIO = 'http://127.0.0.1:3114';
 
 const nav = await chromium.launch(existsSync(exe) ? { executablePath: exe } : {});
 const ctx = await nav.newContext({ viewport: { width: 1280, height: 950 } });
