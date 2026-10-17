@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { requerirPagina } from '@/lib/guardias';
 import { puede } from '@/lib/permisos';
 import { BotonAccion, Campo, Formulario } from '@/components/formulario';
@@ -14,7 +15,8 @@ import {
 import { PASO_MONEDA } from '@/lib/config';
 import { CATEGORIAS_GASTO } from '@/lib/dominio';
 import { mesDe } from '@/lib/contabilidad';
-import { formatearDinero, formatearFecha } from '@/lib/formato';
+import { periodosPendientes } from '@/lib/recurrentes';
+import { formatearDinero, formatearFecha, formatearPeriodo } from '@/lib/formato';
 import { prisma } from '@/lib/prisma';
 import { crearGasto, eliminarGasto } from './acciones';
 
@@ -26,7 +28,7 @@ export default async function GastosPage() {
   const puedeGestionar = puede(usuario.rol, 'gastos.gestionar');
   const { desde, hasta } = mesDe(new Date());
 
-  const [gastos, proveedores, delMes] = await Promise.all([
+  const [gastos, proveedores, delMes, periodos] = await Promise.all([
     prisma.gasto.findMany({
       orderBy: { fecha: 'desc' },
       take: 80,
@@ -38,7 +40,10 @@ export default async function GastosPage() {
       where: { fecha: { gte: desde, lte: hasta } },
       _sum: { monto: true },
     }),
+    puedeGestionar ? periodosPendientes() : Promise.resolve([]),
   ]);
+
+  const pendientes = periodos.filter((p) => p.faltantes > 0);
 
   const totalMes = delMes.reduce((suma, g) => suma + (g._sum.monto ?? 0), 0);
   const mayor = delMes
@@ -51,7 +56,25 @@ export default async function GastosPage() {
       <EncabezadoPagina
         titulo="Gastos"
         descripcion="Lo que se paga sin que haya una venta detrás: alquiler, servicios, embalaje, banco, contador."
+        acciones={
+          puedeGestionar ? (
+            <Link href="/gastos/recurrentes" className="boton-secundario">
+              Gastos fijos del mes
+            </Link>
+          ) : null
+        }
       />
+
+      {pendientes.length > 0 ? (
+        <p className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          {pendientes.length === 1
+            ? `Falta generar los gastos fijos de ${formatearPeriodo(pendientes[0].periodo)}.`
+            : `Faltan generar los gastos fijos de ${pendientes.length} meses.`}{' '}
+          <Link href="/gastos/recurrentes" className="font-medium underline">
+            Generarlos ahora
+          </Link>
+        </p>
+      ) : null}
 
       <section className="mb-6 grid gap-4 sm:grid-cols-3">
         <Indicador titulo="Gastado este mes" valor={formatearDinero(totalMes)} tono="ambar" />

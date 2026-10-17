@@ -163,6 +163,7 @@ const PERMISO_POR_RUTA: readonly (readonly [string, Permiso])[] = [
   ['/compras/nueva', 'compras.gestionar'],
   ['/proveedores/nuevo', 'compras.gestionar'],
   ['/gastos/nuevo', 'gastos.gestionar'],
+  ['/gastos/recurrentes', 'gastos.gestionar'],
   ['/compras', 'compras.ver'],
   ['/proveedores', 'compras.ver'],
   ['/gastos', 'gastos.ver'],

@@ -62,32 +62,33 @@ await p.click('button:has-text("Dar de alta")');
 await p.waitForTimeout(900);
 ok('se da de alta un proveedor', (await p.textContent('body')).includes('Importadora del Este'));
 
-// Stock y costo antes de comprar.
+// Stock y costo antes de comprar. El producto se toma del inventario, no de un
+// nombre escrito a mano: así la prueba sigue valiendo si cambia la semilla.
 await p.goto(SITIO + '/inventario', { waitUntil: 'domcontentloaded' });
-const antes = await p.evaluate(() => {
-  const fila = [...document.querySelectorAll('tr')].find((t) => t.textContent.includes('SKU'));
-  return document.body.textContent.length;
-});
+const primerProducto = {
+  label: ((await p.locator('tbody tr td a, tbody tr td div').first().textContent()) ?? '').trim(),
+};
+ok('el inventario tiene al menos un producto', primerProducto.label.length > 0,
+  primerProducto.label);
+
+const previo = await filaInventario(primerProducto.label);
+const stockPrevio = previo.stock;
+const COSTO_NUEVO = previo.costo + 7000;
 
 await p.goto(SITIO + '/compras', { waitUntil: 'domcontentloaded' });
 await p.selectOption('select[name="proveedorId"]', { label: 'Importadora del Este' });
 await p.fill('input[name="factura"]', '001-001-0009999');
-const primerProducto = await p.evaluate(() => {
-  const s = document.querySelectorAll('select[name="productoId"]')[0];
-  return { value: s.options[1].value, label: s.options[1].text };
-});
-await p.selectOption('select[name="productoId"] >> nth=0', primerProducto.value);
-await p.fill('input[name="cantidad"] >> nth=0', '12');
-// El costo nuevo se deriva del que el producto tiene ahora, para que siempre
-// sea distinto: con un número fijo, repetir la prueba sobre la misma base la
-// haría pasar sin que nada cambiara.
-const previo = await filaInventario(primerProducto.label);
-const stockPrevio = previo.stock;
-const COSTO_NUEVO = previo.costo + 7000;
-await p.goto(SITIO + '/compras', { waitUntil: 'domcontentloaded' });
-await p.selectOption('select[name="proveedorId"]', { label: 'Importadora del Este' });
-await p.fill('input[name="factura"]', '001-001-0009999');
-await p.selectOption('select[name="productoId"] >> nth=0', primerProducto.value);
+// Las líneas de compra ya no llevan un desplegable con el catálogo entero: se
+// escribe en el buscador y se elige de la lista. Es el mismo camino que hace
+// una persona, así que la prueba pasa por donde pasa el uso real.
+await p.fill('input[role="combobox"] >> nth=0', primerProducto.label.slice(0, 12));
+await p.locator('ul[role="listbox"] li').first().waitFor({ timeout: 15000 });
+await p.locator('[role="option"]').first().click();
+await p.waitForFunction(
+  () => (document.querySelector('input[name="productoId"]')?.value ?? '') !== '',
+  null,
+  { timeout: 15000 },
+);
 await p.fill('input[name="cantidad"] >> nth=0', '12');
 await p.fill('input[name="costoUnitario"] >> nth=0', String(COSTO_NUEVO));
 await p.click('button:has-text("Registrar borrador")');

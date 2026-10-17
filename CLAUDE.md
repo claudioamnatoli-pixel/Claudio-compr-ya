@@ -346,6 +346,115 @@ Al escribir pruebas sobre estas pantallas: el `role="option"` está en el botón
 no en el `<li>`; y leer cifras del `textContent` del cuerpo entero las pega
 («30.6283.014»), así que conviene acotar a un locator.
 
+## Gastos fijos y la planilla
+
+Lo que se paga todos los meses pase lo que pase se carga una vez en
+`/gastos/recurrentes` y después se genera con un botón. Los sueldos no se
+cargan: salen de la nómina.
+
+**Un gasto fijo es una plantilla, no un gasto.** `GastoRecurrente` describe el
+alquiler; los gastos de cada mes son filas normales de `Gasto`. Por eso el
+estado de resultados no cambió ni una línea: sigue leyendo `Gasto` y la regla de
+que cada gasto se cuenta una sola vez, en su lugar natural, queda intacta.
+
+**`Gasto.claveGeneracion` es único y ahí está la integridad.** Cada renglón
+generado lleva `recurrente:<id>:2026-10`, `sueldos:2026-10`, `aguinaldo:2026-10`
+o `ips:2026-10`; los gastos cargados a mano lo dejan nulo, y los nulos no chocan
+en un índice único ni en SQLite ni en PostgreSQL. Sin esa columna, tocar el
+botón dos veces cobra el alquiler dos veces y el resultado del mes miente sin
+que nadie sepa por qué.
+
+**Se genera con un botón, nunca al abrir la pantalla.** Una página que se mira
+no debe escribir en la base: con dos personas mirando, o con el navegador
+recargando, aparecerían gastos que nadie cargó.
+
+**El aguinaldo es una provisión mensual, no un gasto de diciembre.** Se devenga
+todos los meses (un doceavo) junto con el IPS patronal (16,5 % del bruto,
+`IPS_PATRONAL_DECIMAS`). Cargarlo entero en diciembre deja once meses mejores de
+lo que son y el último, una catástrofe. **El bruto no alcanza para
+presupuestar**: la planilla cuesta un 24,8 % más de lo que dice la suma de los
+sueldos.
+
+**La nómina sale de `Empleado.salarioBase` de la gente activa**, sin copia que
+se desactualice. Por eso `CATEGORIAS_GASTO.SUELDOS` **no** se admite como gasto
+fijo —`CATEGORIAS_FUERA_DE_RECURRENTE`—: cargarla además a mano la contaría dos
+veces. Es la misma omisión deliberada que deja fuera las comisiones y la
+publicidad.
+
+**Cambiar el importe no reescribe el pasado**, por el mismo motivo que el precio
+se congela en la línea del pedido. Y dar de baja no borra: deja de generar de
+ahí en adelante y conserva lo ya cargado, que es lo que explica un mes cerrado.
+
+**Se genera con los sueldos de hoy.** Generar un mes viejo después de un aumento
+lo carga con el sueldo nuevo. Es una limitación conocida, no un descuido: no hay
+historial de sueldos y hacerlo bien pide uno.
+
+Dos avisos para quien escriba pruebas acá:
+
+- `mode: 'insensitive'` de Prisma **sólo existe en PostgreSQL**. La comparación
+  de nombres repetidos se hace en TypeScript para que funcione también en SQLite.
+- `skipDuplicates` de `createMany` **tampoco corre en SQLite**, así que lo ya
+  generado se filtra en TypeScript. El índice único sigue siendo la garantía: si
+  dos personas generan el mismo mes a la vez, la transacción falla en voz alta.
+
+```
+npx tsx pruebas/gastos-fijos.mjs           # 23 · períodos, día de pago, aguinaldo, IPS
+node pruebas/gastos-fijos-pantalla.mjs     # 35 · circuito completo contra PostgreSQL
+```
+
+Se validó rompiéndolo dos veces. Quitando el filtro de lo ya generado, la prueba
+acusa tres fallos; quitando la guarda de nombres repetidos, siete, entre ellos
+el alquiler cobrado dos veces. **La primera versión de esa prueba no probaba
+nada**: comprobaba que un mes completo no ofreciera el botón, y el segundo
+pasado por el mismo mes nunca se ejecutaba. Ahora carga un gasto fijo nuevo a
+mitad de mes y vuelve a generar, que es cuando el filtro de verdad trabaja.
+
+## La confirmación de los formularios falla de a veces
+
+Al enviar un formulario del panel, **de vez en cuando el dato se guarda y la
+pantalla no acusa recibo**: no aparece el cartel verde ni la fila nueva, y hay
+que recargar para verla. Medido sobre la misma pantalla y el mismo build, una de
+cada cuatro veces. Pasa con la lista vacía y con la lista llena, y pasa en
+pantallas que ya estaban desplegadas —`/gastos`, `/plantillas`—, así que **no lo
+trajo ningún cambio reciente**: es el `useActionState` de los Server Actions con
+`revalidatePath` de la propia ruta. No está arreglado.
+
+Dos consecuencias prácticas:
+
+- **El daño real es el doble envío**: quien cargó algo cree que no entró y lo
+  vuelve a cargar. Por eso las defensas van en el servidor y no en la interfaz
+  —`claveGeneracion` para los meses, la guarda de nombres repetidos para los
+  gastos fijos—, donde no dependen de que la pantalla se comporte.
+- **Ninguna prueba debe esperar el cartel de confirmación.** Se recarga la
+  página y se mira el estado. Una batería que espere el cartel falla una de cada
+  cuatro corridas y hace perder la tarde buscando el problema donde no está
+  —ya la hizo perder una vez—.
+
+Se descartó un arreglo por el camino: mover el «no hay nada» adentro de la
+tabla, para que la forma del árbol no cambiara. Pareció funcionar una vez y no
+era eso; se revirtió entero. Queda anotado para que nadie lo intente de nuevo
+creyendo que es nuevo.
+
+## Las baterías de pantalla envejecen con las pantallas
+
+`pruebas/administracion.mjs` se quedó rota sin que nadie lo notara: el cambio
+que sacó los desplegables de catálogo de `/compras` dejó al test buscando un
+`select[name="productoId"]` que ya no existe. Al tocar una pantalla hay que
+correr **las baterías que la pisan**, no sólo las de la función nueva.
+
+Dos cosas que cuesta descubrir cada vez:
+
+- El `role="option"` del buscador está en el **botón**, no en el `<li>`, y el
+  nombre del producto vive en su propio `<span>`: leer el `textContent` del
+  botón entero lo pega con el código y el stock («…MiniAUD-MINI-0282 u.») y
+  después no coincide con ninguna fila del inventario.
+- Al elegir en el buscador hay que **esperar a que el campo oculto se llene**
+  antes de seguir; y si la prueba navega a otra pantalla, la elección se
+  pierde y hay que volver a hacerla.
+
+`pruebas/caja.mjs` **no es repetible**: la segunda corrida seguida sobre la misma
+base no encuentra plata sin rendir. Correrla sobre una base recién sembrada.
+
 ## El verificador busca en profundidad
 
 `scripts/verificar-flujo.ts` miraba **una sola carpeta** bajo `src/app/(panel)`,

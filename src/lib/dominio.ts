@@ -100,9 +100,23 @@ export const CATEGORIAS_GASTO = catalogo({
   BANCARIOS: { etiqueta: 'Comisiones bancarias y POS', tono: 'rojo' },
   IMPUESTOS: { etiqueta: 'Impuestos y contador', tono: 'rojo' },
   PRODUCCION: { etiqueta: 'Producción de contenido', tono: 'marca' },
+  TERCEROS: { etiqueta: 'Servicios de terceros', tono: 'azul' },
   SUELDOS: { etiqueta: 'Sueldos y cargas sociales', tono: 'verde' },
   OTROS: { etiqueta: 'Otros', tono: 'gris' },
 });
+
+/**
+ * Categorías que **no** se pueden poner en un gasto recurrente.
+ *
+ * `SUELDOS` se genera de la nómina (`Empleado.salarioBase`), así que cargarla
+ * además como recurrente la contaría dos veces. Es la misma omisión deliberada
+ * que deja fuera de `CATEGORIAS_GASTO` a las comisiones y a la publicidad.
+ */
+export const CATEGORIAS_FUERA_DE_RECURRENTE = ['SUELDOS'] as const;
+
+export const CATEGORIAS_RECURRENTE = CATEGORIAS_GASTO.opciones.filter(
+  (o) => !CATEGORIAS_FUERA_DE_RECURRENTE.includes(o.valor as 'SUELDOS'),
+);
 
 export const TIPOS_CAMPANA = catalogo({
   VIDEO: { etiqueta: 'Video orgánico', tono: 'marca' },

@@ -80,8 +80,8 @@ model Empleado {
   comisiones  Comision[]
   compras     Compra[]
   gastos      Gasto[]
-  rendiciones Rendicion[] @relation("RepartidorDeRendicion")
-  recibidas   Rendicion[] @relation("ReceptorDeRendicion")
+  rendiciones Rendicion[]            @relation("RepartidorDeRendicion")
+  recibidas   Rendicion[]            @relation("ReceptorDeRendicion")
   sesiones    Sesion[]
   auditoria   Auditoria[]
 
@@ -344,7 +344,7 @@ model ItemPedido {
   /// reposición más cara haría parecer que se perdió plata en ventas viejas.
   /// Los pedidos anteriores a este campo quedan en 0 y hay que leerlos sabiendo
   /// que su margen sale inflado.
-  costoUnitario  Int @default(0)
+  costoUnitario  Int    @default(0)
 
   pedidoId String
   pedido   Pedido @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
@@ -463,8 +463,9 @@ model Proveedor {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  compras Compra[]
-  gastos  Gasto[]
+  compras     Compra[]
+  gastos      Gasto[]
+  recurrentes GastoRecurrente[]
 
   @@index([nombre])
 }
@@ -473,23 +474,23 @@ model Proveedor {
 /// y hasta ahora no se registraba en ninguna parte: la entrada de stock sabía
 /// cuántas unidades llegaban, pero no cuánto se había pagado por ellas.
 model Compra {
-  id      String @id @default(cuid())
-  numero  String @unique
+  id         String    @id @default(cuid())
+  numero     String    @unique
   /// Ver ESTADOS_COMPRA: BORRADOR, RECIBIDA, PAGADA, ANULADA.
-  estado  String @default("BORRADOR")
+  estado     String    @default("BORRADOR")
   /// Número de la factura del proveedor, para cruzar con la contabilidad.
-  factura String?
-  fecha   DateTime @default(now())
+  factura    String?
+  fecha      DateTime  @default(now())
   /// Suma de las líneas, en la unidad mínima de la moneda. Se recalcula al
   /// guardar; no se escribe a mano.
-  total   Int      @default(0)
-  notas   String?
+  total      Int       @default(0)
+  notas      String?
   /// Cuándo entró la mercadería al depósito. Nulo mientras sea un borrador.
   recibidaAt DateTime?
   /// Cuándo se le pagó al proveedor. Nulo mientras se le deba.
   pagadaAt   DateTime?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   proveedorId String
   proveedor   Proveedor @relation(fields: [proveedorId], references: [id])
@@ -505,8 +506,8 @@ model Compra {
 }
 
 model ItemCompra {
-  id       String @id @default(cuid())
-  cantidad Int
+  id            String @id @default(cuid())
+  cantidad      Int
   /// Lo que se pagó por unidad EN ESTA COMPRA. Se congela igual que el precio
   /// de venta en ItemPedido: una compra posterior más cara no puede reescribir
   /// lo que costó la mercadería que ya se vendió.
@@ -544,6 +545,19 @@ model Gasto {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  /// Identidad de lo que se generó solo: "recurrente:<id>:2026-10",
+  /// "sueldos:2026-10", "aguinaldo:2026-10", "ips:2026-10". Nulo en los gastos
+  /// cargados a mano, y el índice único no choca entre nulos ni en SQLite ni en
+  /// PostgreSQL. Esta columna es la garantía de que un período no se puede
+  /// generar dos veces: sin ella, tocar el botón dos veces duplicaría el
+  /// alquiler y el estado de resultados mentiría.
+  claveGeneracion String? @unique
+  /// Período contable AAAA-MM al que corresponde, cuando se generó solo.
+  periodo         String?
+
+  recurrenteId String?
+  recurrente   GastoRecurrente? @relation(fields: [recurrenteId], references: [id], onDelete: SetNull)
+
   proveedorId String?
   proveedor   Proveedor? @relation(fields: [proveedorId], references: [id], onDelete: SetNull)
 
@@ -553,6 +567,44 @@ model Gasto {
 
   @@index([fecha])
   @@index([categoria])
+  @@index([periodo])
+}
+
+/// Un gasto que se repite todos los meses: alquiler, internet, limpieza.
+///
+/// No es un gasto: es la **plantilla** con la que se escriben los gastos de
+/// cada mes. Los gastos generados son filas normales de `Gasto`, para que el
+/// estado de resultados siga leyendo una sola tabla y la regla de "cada gasto
+/// se cuenta una sola vez, en su lugar natural" no se rompa.
+///
+/// Cambiar el importe no reescribe el pasado, por el mismo motivo que el precio
+/// se congela en la línea del pedido: lo ya generado queda como estaba.
+model GastoRecurrente {
+  id          String   @id @default(cuid())
+  /// Ver CATEGORIAS_GASTO. SUELDOS no se admite acá: la nómina se calcula de
+  /// `Empleado.salarioBase` y cargarla también como recurrente la contaría dos
+  /// veces.
+  categoria   String
+  descripcion String
+  /// En la unidad mínima de la moneda.
+  monto       Int
+  /// Día del mes en que se paga. Se limita a 1–28 para que exista en febrero.
+  diaDePago   Int      @default(1)
+  /// Primer período que corresponde generar, AAAA-MM.
+  desde       String
+  /// Último período, inclusive. Nulo mientras siga vigente.
+  hasta       String?
+  activo      Boolean  @default(true)
+  notas       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  proveedorId String?
+  proveedor   Proveedor? @relation(fields: [proveedorId], references: [id], onDelete: SetNull)
+
+  gastos Gasto[]
+
+  @@index([activo])
 }
 
 /// El cierre de caja de un repartidor: cuánta plata trae y cuánta dice el
@@ -563,9 +615,9 @@ model Gasto {
 /// envío queda atado a una sola rendición: así un cobro no se puede contar dos
 /// veces ni quedar sin rendir sin que aparezca en la lista de pendientes.
 model Rendicion {
-  id     String   @id @default(cuid())
-  numero String   @unique
-  fecha  DateTime @default(now())
+  id         String   @id @default(cuid())
+  numero     String   @unique
+  fecha      DateTime @default(now())
   /// Lo que el sistema calculó que debía traer, congelado en el momento de
   /// cerrar: si se recalculara después, un envío corregido más tarde cambiaría
   /// una diferencia que ya se discutió y se dio por saldada.
